@@ -5,263 +5,253 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Le jeu des questions</title>
     <style>
-        /* =========================================
-           1. VARIABLES ET DESIGN DE BASE
-           ========================================= */
-        :root {
-            --bg-color: #2c3e50;
-            --text-color: white;
-            --card-bg: #ffffff;
-            --theme-color: #e74c3c; /* Rouge par défaut (Difficile) */
-        }
+    /* =========================================
+       1. VARIABLES ET DESIGN NÉON
+       ========================================= */
+    :root {
+        /* Couleurs de fond sombres */
+        --bg-color: #050505;
+        --card-bg: #000000; /* La carte est noire */
+        --text-color: #ffffff;
+        --text-secondary: #cccccc;
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            text-align: center;
-            padding: 20px;
-            box-sizing: border-box;
-            transition: background-color 0.5s ease;
-        }
+        /* Palette Néon Vibrante */
+        --neon-red: #ff073a;
+        --neon-yellow: #ffd700;
+        --neon-green: #39ff14;
 
-        /* Classes utilitaires pour les écrans */
-        .screen {     display: none;
-    width: 100%;
-    max-width: 600px;
-    padding: 20px;
-    border-radius: 20px;}
-        .active { display: flex; flex-direction: column; align-items: center; animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Couleur active par défaut (sera changée par le JS) */
+        --theme-color: var(--neon-red);
 
-        /* --- ÉCRAN 1 : ACCUEIL --- */
-        #splash-screen img {
-            width: 100%;
-            max-width: 350px;
-            height: auto;
-            border-radius: 30px;
-            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
-            margin-bottom: 30px;
-            cursor: pointer;
-            transition: transform 0.3s;
-        }
-        #splash-screen img:hover { transform: scale(1.02); }
-        .click-text { font-size: 1.2rem; font-weight: 300; letter-spacing: 2px; animation: pulse 2s infinite; text-transform: uppercase; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        /* Effets de lueur standardisés */
+        --glow-box-soft: 0 0 15px var(--theme-color), inset 0 0 15px var(--theme-color);
+        --glow-box-strong: 0 0 25px var(--theme-color), 0 0 50px var(--theme-color);
+        --glow-text: 0 0 5px var(--theme-color), 0 0 15px var(--theme-color);
+    }
 
-        /* --- ÉCRAN 2 : SETUP (AJOUT JOUEURS) --- */
-        .input-group { 
-            margin: 20px 0; 
-            width: 100%; 
-            display: flex; 
-            gap: 10px; 
-        }
-        input[type="text"] {
-            padding: 15px;
-            flex-grow: 1;
-            border-radius: 20px;
-            border: none;
-            font-size: 1rem;
-            outline: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        button.add-btn {
-            padding: 15px 20px;
-            background-color: #27ae60;
-            color: white;
-            border: none;
-            border-radius: 20px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            white-space: nowrap; /* Empêche le texte de passer à la ligne */
-        }
-        ul#player-list { list-style: none; padding: 0; margin: 20px 0; width: 100%; }
-        ul#player-list li { 
-            background: rgba(255,255,255,0.1); 
-            margin: 8px 0; 
-            padding: 12px; 
-            border-radius: 15px; 
-            backdrop-filter: blur(5px);
-        }
+    body {
+        font-family: 'Segoe UI', 'Roboto', sans-serif;
+        /* UTILISE TON IMAGE NÉON ICI. Assure-toi du nom du fichier. */
+        background-image: url("images/fond_neon.png");
+        background-color: var(--bg-color); /* Fallback si l'image ne charge pas */
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        color: var(--text-color);
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        text-align: center;
+        padding: 20px;
+        box-sizing: border-box;
+        /* On assombrit légèrement le fond pour faire ressortir les néons */
+        box-shadow: inset 0 0 200px rgba(0,0,0,0.8);
+    }
 
-        /* --- ÉCRAN 3 : JEU --- */
-        .top-info { margin-bottom: 20px; width: 100%; }
-        .current-player { 
-            font-size: 1.4rem; 
-            font-weight: 700; 
-            margin-bottom: 5px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .difficulty-badge {
-            display: inline-block;
-            padding: 8px 25px;
-            border-radius: 50px;
-            background-color: var(--theme-color);
-            color: white;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            font-weight: bold;
-            box-shadow: 0 0 15px var(--theme-color);
-            transition: all 0.5s ease;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-        }
+    /* Styles généraux pour les textes */
+    h1, h2 {
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-shadow: var(--glow-text);
+    }
 
-        /* CARTE CENTRALE */
-        .card-area {
-            background: var(--card-bg);
-            color: #333;
-            width: 100%;
-            border-radius: 30px;
-            padding: 25px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            border: 4px solid var(--theme-color);
-            position: relative;
-            transition: border-color 0.5s ease;
-            overflow: hidden;
-            box-sizing: border-box;
-        }
+    /* --- Classes utilitaires pour les écrans --- */
+    .screen {
+        display: none;
+        width: 100%;
+        max-width: 600px;
+        padding: 25px;
+        border-radius: 20px;
+        /* Fond semi-transparent noir pour les écrans de menu */
+        background: rgba(0, 0, 0, 0.7);
+        border: 2px solid var(--theme-color);
+        box-shadow: var(--glow-box-soft);
+        backdrop-filter: blur(5px);
+    }
+    .active {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        animation: flickerIn 0.8s ease-out;
+    }
+    /* Animation d'apparition type "allumage de néon" */
+    @keyframes flickerIn {
+        0% { opacity: 0; }
+        10%, 30%, 50% { opacity: 0.5; }
+        20%, 40%, 60% { opacity: 0.8; }
+        100% { opacity: 1; }
+    }
 
-        .difficulty-img {
-            width: 80px;
-            height: 80px;
-            object-fit: contain;
-            margin: 0 auto 10px auto;
-            display: block;
-        }
+    /* --- ÉCRAN 1 : ACCUEIL --- */
+    #splash-screen { background: transparent; border: none; box-shadow: none; }
+    #splash-screen img {
+        width: 100%; max-width: 350px; height: auto; border-radius: 30px;
+        /* Lueur autour du logo */
+        box-shadow: var(--glow-box-strong);
+        margin-bottom: 30px; cursor: pointer; transition: transform 0.3s;
+    }
+    #splash-screen img:hover { transform: scale(1.05); }
+    .click-text {
+        font-size: 1.3rem; font-weight: 300; letter-spacing: 4px;
+        text-transform: uppercase;
+        color: var(--theme-color);
+        text-shadow: var(--glow-text);
+        animation: pulseNeon 1.5s infinite alternate;
+    }
+    @keyframes pulseNeon { from { opacity: 0.7; text-shadow: 0 0 5px var(--theme-color); } to { opacity: 1; text-shadow: 0 0 20px var(--theme-color), 0 0 30px var(--theme-color); } }
 
-        /* BOUTONS (Révélation) */
-        .reveal-btn {
-            background-color: var(--theme-color);
-            color: white;
-            border: none;
-            padding: 15px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            font-weight: 600;
-            width: 100%;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        }
-        .reveal-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
-        
-        /* CONTENU CACHÉ */
-        .hidden-content {
-            display: none;
-            padding: 15px;
-            background: #f4f6f7;
-            border-radius: 15px;
-            text-align: center;
-            border: 2px dashed #bdc3c7;
-            word-wrap: break-word; /* Évite que le texte sorte sur mobile */
-        }
-        
-        #text-question { font-size: 1.2rem; font-weight: 600; }
-        #text-theme { font-size: 1.1rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; }
+    /* --- ÉCRAN 2 : SETUP & INPUTS NÉON --- */
+    .input-group { margin: 20px 0; width: 100%; display: flex; gap: 10px; }
+    input[type="text"] {
+        padding: 15px; flex-grow: 1; border-radius: 15px; font-size: 1rem; outline: none;
+        background: #111;
+        border: 2px solid #333;
+        color: white;
+        transition: all 0.3s;
+    }
+    input[type="text"]:focus {
+        border-color: var(--theme-color);
+        box-shadow: 0 0 10px var(--theme-color);
+    }
+    ul#player-list li {
+        background: rgba(255,255,255,0.05);
+        margin: 8px 0; padding: 12px; border-radius: 10px;
+        border-left: 3px solid var(--theme-color);
+        text-align: left;
+    }
 
-        /* GRILLE DES CHOIX */
-        .options-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        .option-item {
-            background: white;
-            padding: 12px;
-            border-radius: 15px;
-            font-size: 0.95rem;
-            border: 2px solid #ecf0f1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 500;
-        }
+    /* --- ÉCRAN 3 : JEU --- */
+    .top-info { margin-bottom: 25px; width: 100%; }
+    .current-player {
+        font-size: 1.5rem; font-weight: 700; margin-bottom: 10px;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
 
-        .correct-answer {
-            color: #27ae60;
-            font-weight: 800;
-            margin-top: 15px;
-            padding: 10px;
-            border: 2px solid #27ae60;
-            border-radius: 15px;
-            display: none;
-            background-color: rgba(39, 174, 96, 0.1);
-        }
+    .difficulty-badge {
+        display: inline-block; padding: 10px 30px; border-radius: 50px;
+        /* Style Néon pour le badge */
+        background-color: transparent;
+        border: 2px solid var(--theme-color);
+        color: var(--theme-color);
+        text-shadow: var(--glow-text);
+        box-shadow: inset 0 0 10px var(--theme-color);
+        text-transform: uppercase; font-size: 1rem; font-weight: bold;
+        transition: all 0.5s ease;
+    }
 
-        /* CONTRÔLES (Passer / Gagner) */
-        .game-controls {
-            display: flex;
-            gap: 15px;
-            margin-top: 25px;
-            width: 100%;
-        }
-        .btn-control {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 25px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 1rem;
-            color: white;
-            transition: transform 0.2s;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        .btn-control:active { transform: scale(0.95); }
-        .btn-fail { background-color: #95a5a6; }
-        .btn-success { background-color: var(--theme-color); }
+    /* === CARTE CENTRALE (LE CŒUR DU NÉON) === */
+    .card-area {
+        background: var(--card-bg); /* NOIR */
+        color: var(--text-color);
+        width: 100%;
+        border-radius: 30px;
+        padding: 30px;
+        display: flex; flex-direction: column; gap: 20px;
+        /* Bordure et lueur néon intense */
+        border: 3px solid var(--theme-color);
+        box-shadow: var(--glow-box-soft), 0 0 30px rgba(0,0,0,0.8);
+        position: relative;
+        transition: all 0.5s ease;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
+
+    .difficulty-img {
+        width: 150px; height: 150px; object-fit: contain;
+        margin: 0 auto 15px auto; display: block;
+    }
+
+    /* === BOUTONS NÉON (Révélation & Contrôles) === */
+    .reveal-btn, .btn-control, .add-btn {
+        /* Fond transparent pour l'effet néon */
+        background-color: black;
+        color: var(--theme-color);
+        border: 2px solid var(--theme-color);
+        padding: 15px 20px;
+        border-radius: 15px;
+        cursor: pointer;
+        font-size: 1.1rem; font-weight: 700;
+        width: 100%;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        /* Lueur interne et texte brillant */
+        box-shadow: inset 0 0 10px var(--theme-color);
+        text-shadow: 0 0 5px var(--theme-color);
+    }
+
+    .reveal-btn:hover, .btn-control:hover, .add-btn:hover {
+        /* Au survol, le bouton se remplit */
+        background-color: var(--theme-color);
+        color: black;
+        text-shadow: none;
+        box-shadow: 0 0 20px var(--theme-color);
+        transform: translateY(-2px);
+    }
+
+    /* Boutons spécifiques */
+    .add-btn { --theme-color: var(--neon-green); }
+    .btn-fail { --theme-color: var(--text-secondary); }
+    .btn-success { --theme-color: var(--neon-green); }
 
 
-        /* =========================================
-           2. RESPONSIVE (MEDIA QUERIES)
-           ========================================= */
+    /* CONTENU CACHÉ (TEXTES DE QUESTIONS) */
+    .hidden-content {
+        display: none;
+        padding: 20px;
+        background: #111; /* Fond très sombre pour le contenu */
+        border-radius: 15px;
+        text-align: center;
+        border: 1px solid #333;
+    }
 
-        /* Tablettes et petits laptops */
-        @media (max-width: 768px) {
-            .screen { max-width: 90%; }
-            .card-area { padding: 20px; }
-            .current-player { font-size: 1.2rem; }
-            .reveal-btn { font-size: 1rem; padding: 12px; }
-        }
+    #text-question { font-size: 1.3rem; font-weight: 600; color: white; }
+    #text-theme { font-size: 1.2rem; color: var(--theme-color); text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 5px var(--theme-color); }
 
-        /* Mobiles (Smartphones) */
-        @media (max-width: 480px) {
-            body { padding: 10px; }
-            
-            #splash-screen img { max-width: 80%; }
-            
-            /* L'ajout de joueur passe en colonne pour de gros boutons */
-            .input-group { flex-direction: column; }
-            input[type="text"] { width: 100%; box-sizing: border-box; }
-            button.add-btn { width: 100%; padding: 15px; }
+    /* GRILLE DES CHOIX */
+    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+    .option-item {
+        background: #1a1a1a;
+        padding: 15px;
+        border-radius: 12px;
+        font-size: 1rem;
+        border: 2px solid #333;
+        color: var(--text-secondary);
+        display: flex; align-items: center; justify-content: center; font-weight: 500;
+        transition: border-color 0.3s;
+    }
+    .option-item:hover { border-color: var(--theme-color); color: white; }
 
-            /* Les choix passent sur une seule colonne */
-            .options-grid { grid-template-columns: 1fr; }
+    .correct-answer {
+        color: var(--neon-green);
+        font-size: 1.2rem; font-weight: 800;
+        margin-top: 20px; padding: 15px;
+        border: 3px solid var(--neon-green);
+        border-radius: 15px;
+        display: none;
+        background-color: rgba(57, 255, 20, 0.1);
+        text-shadow: 0 0 10px var(--neon-green);
+        box-shadow: 0 0 15px var(--neon-green);
+        animation: pulseNeon 1s infinite alternate;
+    }
 
-            /* Les contrôles de fin de tour s'empilent */
-            .game-controls { flex-direction: column; gap: 10px; }
-            .btn-control { width: 100%; padding: 18px; font-size: 1.1rem; }
-            
-            .card-area { border-width: 3px; }
-        }
+    .game-controls { display: flex; gap: 15px; margin-top: 25px; width: 100%; }
 
-    </style>
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+        .screen { max-width: 95%; padding: 15px; }
+        .card-area { padding: 20px; }
+        .current-player { font-size: 1.2rem; }
+        .reveal-btn { font-size: 1rem; padding: 12px; }
+        .options-grid { grid-template-columns: 1fr; }
+    }
+</style>
 </head>
 <body>
-
+    
     <div id="splash-screen" class="screen active" onclick="goToSetup()">
         <img src="images/accueil.png" alt="Logo Jeu" onerror="this.src='https://placehold.co/400x400/2c3e50/FFF?text=QUIZ+MASTER'">
         <div class="click-text">Touchez pour commencer</div>
@@ -276,6 +266,14 @@
         </div>
         <br>
         <button class="reveal-btn" style="background-color: #f1c40f; color: #333;" onclick="startGame()">LANCER LA PARTIE</button>
+    </div>
+
+    <div id="transition-screen" class="screen">
+        <h1 style="font-size: 2.5rem; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">CHANGEMENT DE JOUEUR</h1>
+        <p style="font-size: 1.5rem; margin-bottom: 30px;">C'est au tour de :</p>
+        <div id="next-player-name" style="font-size: 3rem; font-weight: bold; color: #f1c40f; margin-bottom: 40px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">...</div>
+        
+        <button class="reveal-btn" style="background-color: black;" onclick="startNextTurn()">C'EST PARTI !</button>
     </div>
 
     <div id="game-screen" class="screen">
@@ -316,13 +314,11 @@
 
     <script>
         /* =========================================================
-           ZONE DE DONNÉES - COLLE TON JSON CI-DESSOUS
+           ZONE DE DONNÉES - JSON COMPLET
            ========================================================= */
         
         const allQuestions = 
-        
-        // --- DÉBUT DU COLLAGE ---
-[
+        [
   {
     "theme": "Astronomie",
     "difficulty": "facile",
@@ -2402,9 +2398,7 @@
     "options": ["Un aigle", "Une épée", "Un croissant de lune", "Une étoile"],
     "answer": "Une épée"
   }
-]
-        // --- FIN DU COLLAGE ---
-        ;
+];
 
 
         /* =========================================================
@@ -2415,11 +2409,17 @@
         let currentDifficultyIndex = 0; // 0 = Premier niveau du tableau 'levels'
         let currentQuestionObj = null;
 
-        // CONFIGURATION DES NIVEAUX (Ordre : Difficile -> Moyen -> Facile)
+        // CONFIGURATION DES NIVEAUX (AVEC FONDS D'ÉCRAN)
         const levels = [
-            { name: "difficile", color: "#e74c3c", label: "DIFFICILE", img: "images/logo_difficile.png" }, // Index 0 (Rouge)
-            { name: "moyen", color: "#f1c40f", label: "MOYEN", img: "images/logo_moyen.png" },             // Index 1 (Jaune)
-            { name: "facile", color: "#2ecc71", label: "FACILE", img: "images/logo_facile.png" }             // Index 2 (Vert)
+            { name: "difficile", color: "#e74c3c", label: "DIFFICILE", img: "images/logo_difficile.png", bg: "images/fond1.png" }, 
+            { name: "moyen", color: "#f1c40f", label: "MOYEN", img: "images/logo_moyen.png", bg: "images/fond1.png" },             
+            { name: "facile", color: "#2ecc71", label: "FACILE", img: "images/logo_facile.png", bg: "images/fond1.png" }             
+        ];
+
+        const cardcolors = [
+            { name: "difficile", color: "#000000"},
+            { name: "moyen", color: "#000000"},
+            { name: "facile", color: "#000000"}
         ];
 
         function showScreen(id) {
@@ -2446,26 +2446,33 @@
             if (players.length === 0) { alert("Il faut au moins un joueur !"); return; }
             currentPlayerIndex = 0;
             currentDifficultyIndex = 0; // On commence à l'index 0 (Difficile)
+            
             updateGameVisuals();
             loadNewCard();
             showScreen('game-screen');
         }
 
+        // Met à jour les couleurs, images et le fond d'écran
         function updateGameVisuals() {
             const level = levels[currentDifficultyIndex];
             
             // Mise à jour de la couleur globale
             document.documentElement.style.setProperty('--theme-color', level.color);
+
+            // Mise à jour du fond d'écran
+            document.body.style.backgroundImage = `url('${level.bg}')`;
+
+            const cardcolor = cardcolors[currentDifficultyIndex];
+            document.documentElement.style.setProperty('--card-bg', cardcolor.color);
             
             // Textes
             document.getElementById('current-player-display').textContent = "C'est à " + players[currentPlayerIndex] + " de jouer";
             document.getElementById('difficulty-display').textContent = level.label;
 
-            // Image
+            // Image de difficulté
             const imgElement = document.getElementById('difficulty-img');
             imgElement.src = level.img; 
             imgElement.onerror = function() { 
-                // Placeholder si l'image n'existe pas
                 this.src = `https://placehold.co/100x100/${level.color.substring(1)}/FFF?text=${level.name.charAt(0).toUpperCase()}`; 
             };
         }
@@ -2525,24 +2532,39 @@
 
         function showAnswer() { document.getElementById('answer-display').style.display = 'block'; }
 
+        // Nouvelle logique de gestion des tours
         function handleTurn(success) {
             if (success) {
-                // GAGNÉ : On passe au niveau "plus facile" (suivant dans le tableau)
+                // GAGNÉ : On passe au niveau "plus facile", même joueur
                 if (currentDifficultyIndex < levels.length - 1) {
                     currentDifficultyIndex++;
                 } else {
-                    // C'était le dernier niveau (Facile) -> Grand Chelem !
+                    // Dernier niveau (Facile) validé -> Grand Chelem !
                     alert("Bravo ! Niveau Facile validé. On garde la main et on recommence en Difficile !");
-                    currentDifficultyIndex = 0; // Retour à Difficile, même joueur
+                    currentDifficultyIndex = 0; 
                 }
+                // Si gagné, on enchaîne direct
+                updateGameVisuals();
+                loadNewCard();
+
             } else {
-                // PERDU : On reset à Difficile (0) et on change de joueur
-                currentDifficultyIndex = 0;
+                // PERDU / PASSER : Changement de joueur
                 currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+                currentDifficultyIndex = 0; // Reset à Difficile
+
+                // Affichage de l'écran de transition
+                document.getElementById('next-player-name').textContent = players[currentPlayerIndex];
+                showScreen('transition-screen');
             }
+        }
+
+        // Fonction appelée par le bouton de l'écran de transition
+        function startNextTurn() {
             updateGameVisuals();
             loadNewCard();
+            showScreen('game-screen');
         }
+
     </script>
 </body>
 </html>
