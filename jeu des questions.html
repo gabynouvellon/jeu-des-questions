@@ -1,0 +1,2548 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le jeu des questions</title>
+    <style>
+        /* =========================================
+           1. VARIABLES ET DESIGN DE BASE
+           ========================================= */
+        :root {
+            --bg-color: #2c3e50;
+            --text-color: white;
+            --card-bg: #ffffff;
+            --theme-color: #e74c3c; /* Rouge par défaut (Difficile) */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            transition: background-color 0.5s ease;
+        }
+
+        /* Classes utilitaires pour les écrans */
+        .screen {     display: none;
+    width: 100%;
+    max-width: 600px;
+    padding: 20px;
+    border-radius: 20px;}
+        .active { display: flex; flex-direction: column; align-items: center; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- ÉCRAN 1 : ACCUEIL --- */
+        #splash-screen img {
+            width: 100%;
+            max-width: 350px;
+            height: auto;
+            border-radius: 30px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+            margin-bottom: 30px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        #splash-screen img:hover { transform: scale(1.02); }
+        .click-text { font-size: 1.2rem; font-weight: 300; letter-spacing: 2px; animation: pulse 2s infinite; text-transform: uppercase; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* --- ÉCRAN 2 : SETUP (AJOUT JOUEURS) --- */
+        .input-group { 
+            margin: 20px 0; 
+            width: 100%; 
+            display: flex; 
+            gap: 10px; 
+        }
+        input[type="text"] {
+            padding: 15px;
+            flex-grow: 1;
+            border-radius: 20px;
+            border: none;
+            font-size: 1rem;
+            outline: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button.add-btn {
+            padding: 15px 20px;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            white-space: nowrap; /* Empêche le texte de passer à la ligne */
+        }
+        ul#player-list { list-style: none; padding: 0; margin: 20px 0; width: 100%; }
+        ul#player-list li { 
+            background: rgba(255,255,255,0.1); 
+            margin: 8px 0; 
+            padding: 12px; 
+            border-radius: 15px; 
+            backdrop-filter: blur(5px);
+        }
+
+        /* --- ÉCRAN 3 : JEU --- */
+        .top-info { margin-bottom: 20px; width: 100%; }
+        .current-player { 
+            font-size: 1.4rem; 
+            font-weight: 700; 
+            margin-bottom: 5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .difficulty-badge {
+            display: inline-block;
+            padding: 8px 25px;
+            border-radius: 50px;
+            background-color: var(--theme-color);
+            color: white;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            font-weight: bold;
+            box-shadow: 0 0 15px var(--theme-color);
+            transition: all 0.5s ease;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* CARTE CENTRALE */
+        .card-area {
+            background: var(--card-bg);
+            color: #333;
+            width: 100%;
+            border-radius: 30px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            border: 4px solid var(--theme-color);
+            position: relative;
+            transition: border-color 0.5s ease;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .difficulty-img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            margin: 0 auto 10px auto;
+            display: block;
+        }
+
+        /* BOUTONS (Révélation) */
+        .reveal-btn {
+            background-color: var(--theme-color);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        .reveal-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        
+        /* CONTENU CACHÉ */
+        .hidden-content {
+            display: none;
+            padding: 15px;
+            background: #f4f6f7;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px dashed #bdc3c7;
+            word-wrap: break-word; /* Évite que le texte sorte sur mobile */
+        }
+        
+        #text-question { font-size: 1.2rem; font-weight: 600; }
+        #text-theme { font-size: 1.1rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* GRILLE DES CHOIX */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .option-item {
+            background: white;
+            padding: 12px;
+            border-radius: 15px;
+            font-size: 0.95rem;
+            border: 2px solid #ecf0f1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+        }
+
+        .correct-answer {
+            color: #27ae60;
+            font-weight: 800;
+            margin-top: 15px;
+            padding: 10px;
+            border: 2px solid #27ae60;
+            border-radius: 15px;
+            display: none;
+            background-color: rgba(39, 174, 96, 0.1);
+        }
+
+        /* CONTRÔLES (Passer / Gagner) */
+        .game-controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            width: 100%;
+        }
+        .btn-control {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+            color: white;
+            transition: transform 0.2s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .btn-control:active { transform: scale(0.95); }
+        .btn-fail { background-color: #95a5a6; }
+        .btn-success { background-color: var(--theme-color); }
+
+
+        /* =========================================
+           2. RESPONSIVE (MEDIA QUERIES)
+           ========================================= */
+
+        /* Tablettes et petits laptops */
+        @media (max-width: 768px) {
+            .screen { max-width: 90%; }
+            .card-area { padding: 20px; }
+            .current-player { font-size: 1.2rem; }
+            .reveal-btn { font-size: 1rem; padding: 12px; }
+        }
+
+        /* Mobiles (Smartphones) */
+        @media (max-width: 480px) {
+            body { padding: 10px; }
+            
+            #splash-screen img { max-width: 80%; }
+            
+            /* L'ajout de joueur passe en colonne pour de gros boutons */
+            .input-group { flex-direction: column; }
+            input[type="text"] { width: 100%; box-sizing: border-box; }
+            button.add-btn { width: 100%; padding: 15px; }
+
+            /* Les choix passent sur une seule colonne */
+            .options-grid { grid-template-columns: 1fr; }
+
+            /* Les contrôles de fin de tour s'empilent */
+            .game-controls { flex-direction: column; gap: 10px; }
+            .btn-control { width: 100%; padding: 18px; font-size: 1.1rem; }
+            
+            .card-area { border-width: 3px; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="splash-screen" class="screen active" onclick="goToSetup()">
+        <img src="images/accueil.png" alt="Logo Jeu" onerror="this.src='https://placehold.co/400x400/2c3e50/FFF?text=QUIZ+MASTER'">
+        <div class="click-text">Touchez pour commencer</div>
+    </div>
+
+    <div id="setup-screen" class="screen">
+        <h2 style="font-size: 2rem;">Joueurs</h2>
+        <ul id="player-list"></ul>
+        <div class="input-group">
+            <input type="text" id="player-input" placeholder="Prénom...">
+            <button class="add-btn" onclick="addPlayer()">AJOUTER</button>
+        </div>
+        <br>
+        <button class="reveal-btn" style="background-color: #f1c40f; color: #333;" onclick="startGame()">LANCER LA PARTIE</button>
+    </div>
+
+    <div id="game-screen" class="screen">
+        
+        <div class="top-info">
+            <div id="current-player-display" class="current-player">Joueur 1</div>
+            <span id="difficulty-display" class="difficulty-badge">Niveau 1</span>
+        </div>
+
+        <div class="card-area">
+            
+            <img id="difficulty-img" src="" class="difficulty-img" alt="Icone difficulté">
+
+            <button id="btn-theme" class="reveal-btn" onclick="reveal('theme')">DÉCOUVRIR LE THÈME</button>
+            <div id="content-theme" class="hidden-content">
+                <div id="text-theme">...</div>
+            </div>
+
+            <button id="btn-question" class="reveal-btn" onclick="reveal('question')" style="display:none;">AFFICHER LA QUESTION</button>
+            <div id="content-question" class="hidden-content">
+                <div id="text-question">...</div>
+            </div>
+
+            <button id="btn-options" class="reveal-btn" onclick="reveal('options')" style="display:none;">LES 4 PROPOSITIONS</button>
+            <div id="content-options" class="hidden-content">
+                <div id="options-container" class="options-grid"></div>
+                <div id="answer-display" class="correct-answer">...</div>
+                <div onclick="showAnswer()" style="margin-top:15px; font-size: 0.8rem; color:#bdc3c7; cursor:pointer; text-decoration: underline;">Révéler la réponse (Maître du jeu)</div>
+            </div>
+
+        </div>
+
+        <div class="game-controls">
+            <button class="btn-control btn-fail" onclick="handleTurn(false)">PASSER / RATÉ</button>
+            <button class="btn-control btn-success" onclick="handleTurn(true)">GAGNÉ !</button>
+        </div>
+    </div>
+
+    <script>
+        /* =========================================================
+           ZONE DE DONNÉES - COLLE TON JSON CI-DESSOUS
+           ========================================================= */
+        
+        const allQuestions = 
+        
+        // --- DÉBUT DU COLLAGE ---
+[
+  {
+    "theme": "Astronomie",
+    "difficulty": "facile",
+    "question": "Quelle est la planète la plus proche du Soleil ?",
+    "options": ["Vénus", "Mars", "Mercure", "Terre"],
+    "answer": "Mercure"
+  },
+  {
+    "theme": "Astronomie",
+    "difficulty": "facile",
+    "question": "Quel satellite naturel tourne autour de la Terre ?",
+    "options": ["La Lune", "Titan", "Europe", "Phobos"],
+    "answer": "La Lune"
+  },
+  {
+    "theme": "Astronomie",
+    "difficulty": "facile",
+    "question": "Quelle planète est surnommée la Planète Rouge ?",
+    "options": ["Jupiter", "Mars", "Saturne", "Vénus"],
+    "answer": "Mars"
+  },
+  {
+    "theme": "Astronomie",
+    "difficulty": "moyen",
+    "question": "Quelle est la plus grande planète du système solaire ?",
+    "options": ["Saturne", "Jupiter", "Neptune", "Uranus"],
+    "answer": "Jupiter"
+  },
+  {
+    "theme": "Astronomie",
+    "difficulty": "moyen",
+    "question": "Comment s'appelle notre galaxie ?",
+    "options": ["Andromède", "Le Grand Nuage", "La Voie Lactée", "Le Sombrero"],
+    "answer": "La Voie Lactée"
+  },
+  {
+    "theme": "Astronomie",
+    "difficulty": "moyen",
+    "question": "Qui a formulé la théorie de la relativité générale ?",
+    "options": ["Isaac Newton", "Albert Einstein", "Nikola Tesla", "Stephen Hawking"],
+    "answer": "Albert Einstein"
+  },
+  {
+    "theme": "Astronomie",
+    "difficulty": "difficile",
+    "question": "Quelle est l'étoile la plus proche du Soleil ?",
+    "options": ["Sirius", "Alpha Centauri A", "Proxima du Centaure", "Bételgeuse"],
+    "answer": "Proxima du Centaure"
+  },
+  {
+    "theme": "Astronomie",
+    "difficulty": "difficile",
+    "question": "En quelle année l'homme a-t-il marché sur la Lune pour la première fois ?",
+    "options": ["1965", "1969", "1972", "1967"],
+    "answer": "1969"
+  },
+  {
+    "theme": "Astronomie",
+    "difficulty": "difficile",
+    "question": "Quelle est la durée exacte de rotation de la Terre sur elle-même (jour sidéral) ?",
+    "options": ["24h 00m 00s", "23h 56m 04s", "23h 48m 12s", "24h 02m 10s"],
+    "answer": "23h 56m 04s"
+  },
+  {
+    "theme": "Cinéma",
+    "difficulty": "facile",
+    "question": "Quel animal est Simba dans le Roi Lion ?",
+    "options": ["Un tigre", "Un lion", "Un guépard", "Un chat"],
+    "answer": "Un lion"
+  },
+  {
+    "theme": "Cinéma",
+    "difficulty": "facile",
+    "question": "Quelle est la couleur du sabre laser de Dark Vador ?",
+    "options": ["Bleu", "Vert", "Rouge", "Violet"],
+    "answer": "Rouge"
+  },
+  {
+    "theme": "Cinéma",
+    "difficulty": "facile",
+    "question": "Dans quel film trouve-t-on un requin tueur géant ?",
+    "options": ["Les Dents de la Mer", "Titanic", "Abyss", "Le Grand Bleu"],
+    "answer": "Les Dents de la Mer"
+  },
+  {
+    "theme": "Cinéma",
+    "difficulty": "moyen",
+    "question": "Qui a réalisé le film 'Inception' ?",
+    "options": ["Steven Spielberg", "Christopher Nolan", "Quentin Tarantino", "Martin Scorsese"],
+    "answer": "Christopher Nolan"
+  },
+  {
+    "theme": "Cinéma",
+    "difficulty": "moyen",
+    "question": "Quel acteur incarne Jack Dawson dans Titanic ?",
+    "options": ["Brad Pitt", "Johnny Depp", "Leonardo DiCaprio", "Tom Cruise"],
+    "answer": "Leonardo DiCaprio"
+  },
+  {
+    "theme": "Cinéma",
+    "difficulty": "moyen",
+    "question": "Quel film a remporté l'Oscar du meilleur film en 2000 ?",
+    "options": ["Gladiator", "Matrix", "American Beauty", "Le Sixième Sens"],
+    "answer": "American Beauty"
+  },
+  {
+    "theme": "Cinéma",
+    "difficulty": "difficile",
+    "question": "Quel est le premier long-métrage d'animation de Disney ?",
+    "options": ["Pinocchio", "Bambi", "Blanche-Neige et les Sept Nains", "Dumbo"],
+    "answer": "Blanche-Neige et les Sept Nains"
+  },
+  {
+    "theme": "Cinéma",
+    "difficulty": "difficile",
+    "question": "Dans 'Pulp Fiction', que contient la mallette mystérieuse ?",
+    "options": ["De l'or", "Une âme", "Des diamants", "On ne le voit jamais"],
+    "answer": "On ne le voit jamais"
+  },
+  {
+    "theme": "Cinéma",
+    "difficulty": "difficile",
+    "question": "Quel est le film le plus rentables de tous les temps (hors inflation) en 2023 ?",
+    "options": ["Avengers: Endgame", "Avatar", "Titanic", "Star Wars: Le Réveil de la Force"],
+    "answer": "Avatar"
+  },
+  {
+    "theme": "Géographie",
+    "difficulty": "facile",
+    "question": "Quelle est la capitale de la France ?",
+    "options": ["Lyon", "Marseille", "Paris", "Bordeaux"],
+    "answer": "Paris"
+  },
+  {
+    "theme": "Géographie",
+    "difficulty": "facile",
+    "question": "Sur quel continent se trouve l'Égypte ?",
+    "options": ["Asie", "Afrique", "Europe", "Amérique"],
+    "answer": "Afrique"
+  },
+  {
+    "theme": "Géographie",
+    "difficulty": "facile",
+    "question": "Quel pays a la forme d'une botte ?",
+    "options": ["Espagne", "Grèce", "Italie", "Portugal"],
+    "answer": "Italie"
+  },
+  {
+    "theme": "Géographie",
+    "difficulty": "moyen",
+    "question": "Quel est le plus long fleuve du monde ?",
+    "options": ["Le Nil", "L'Amazone", "Le Yangzi Jiang", "Le Mississippi"],
+    "answer": "L'Amazone"
+  },
+  {
+    "theme": "Géographie",
+    "difficulty": "moyen",
+    "question": "Quelle est la capitale du Canada ?",
+    "options": ["Toronto", "Vancouver", "Montréal", "Ottawa"],
+    "answer": "Ottawa"
+  },
+  {
+    "theme": "Géographie",
+    "difficulty": "moyen",
+    "question": "Quel océan baigne les côtes de la Californie ?",
+    "options": ["Océan Atlantique", "Océan Pacifique", "Océan Indien", "Océan Arctique"],
+    "answer": "Océan Pacifique"
+  },
+  {
+    "theme": "Géographie",
+    "difficulty": "difficile",
+    "question": "Quel est le pays le plus peuplé du monde en 2023 ?",
+    "options": ["La Chine", "L'Inde", "Les USA", "L'Indonésie"],
+    "answer": "L'Inde"
+  },
+  {
+    "theme": "Géographie",
+    "difficulty": "difficile",
+    "question": "Quelle est la capitale du Kazakhstan ?",
+    "options": ["Almaty", "Astana", "Tachkent", "Bichkek"],
+    "answer": "Astana"
+  },
+  {
+    "theme": "Géographie",
+    "difficulty": "difficile",
+    "question": "Quel détroit sépare l'Espagne du Maroc ?",
+    "options": ["Détroit de Gibraltar", "Détroit du Bosphore", "Détroit de Messine", "Canal de Suez"],
+    "answer": "Détroit de Gibraltar"
+  },
+  {
+    "theme": "Sport",
+    "difficulty": "facile",
+    "question": "Quel pays a remporté la Coupe du Monde de football en 1998 ?",
+    "options": ["Brésil", "Italie", "France", "Allemagne"],
+    "answer": "France"
+  },
+  {
+    "theme": "Sport",
+    "difficulty": "facile",
+    "question": "Combien de minutes dure un match de football standard ?",
+    "options": ["45 min", "60 min", "90 min", "100 min"],
+    "answer": "90 min"
+  },
+  {
+    "theme": "Sport",
+    "difficulty": "facile",
+    "question": "Avec quel objet joue-t-on au tennis ?",
+    "options": ["Un volant", "Une balle jaune", "Un palet", "Un ballon"],
+    "answer": "Une balle jaune"
+  },
+  {
+    "theme": "Sport",
+    "difficulty": "moyen",
+    "question": "Quel athlète détient le record du monde du 100 mètres (9,58 s) ?",
+    "options": ["Carl Lewis", "Usain Bolt", "Tyson Gay", "Maurice Greene"],
+    "answer": "Usain Bolt"
+  },
+  {
+    "theme": "Sport",
+    "difficulty": "moyen",
+    "question": "De quel pays est originaire le Judo ?",
+    "options": ["Chine", "Corée du Sud", "Japon", "Thaïlande"],
+    "answer": "Japon"
+  },
+  {
+    "theme": "Sport",
+    "difficulty": "moyen",
+    "question": "Quelle est la couleur du maillot du leader du Tour de France ?",
+    "options": ["Jaune", "Vert", "A pois", "Blanc"],
+    "answer": "Jaune"
+  },
+  {
+    "theme": "Sport",
+    "difficulty": "difficile",
+    "question": "À quelle hauteur exacte se trouve un panier de basket officiel ?",
+    "options": ["3,00 m", "3,05 m", "3,10 m", "2,95 m"],
+    "answer": "3,05 m"
+  },
+  {
+    "theme": "Sport",
+    "difficulty": "difficile",
+    "question": "En quelle année ont eu lieu les premiers Jeux Olympiques modernes ?",
+    "options": ["1896", "1900", "1924", "1888"],
+    "answer": "1896"
+  },
+  {
+    "theme": "Sport",
+    "difficulty": "difficile",
+    "question": "Quel est le surnom de l'équipe nationale de rugby de Nouvelle-Zélande ?",
+    "options": ["Les Wallabies", "Les Springboks", "Les All Blacks", "Le XV du Trèfle"],
+    "answer": "Les All Blacks"
+  },
+  {
+    "theme": "Musique",
+    "difficulty": "facile",
+    "question": "Qui est surnommé le 'Roi de la Pop' ?",
+    "options": ["Elvis Presley", "Prince", "Michael Jackson", "Madonna"],
+    "answer": "Michael Jackson"
+  },
+  {
+    "theme": "Musique",
+    "difficulty": "facile",
+    "question": "Combien de cordes possède une guitare standard ?",
+    "options": ["4", "5", "6", "12"],
+    "answer": "6"
+  },
+  {
+    "theme": "Musique",
+    "difficulty": "facile",
+    "question": "Quel instrument possède des touches noires et blanches ?",
+    "options": ["La guitare", "Le piano", "Le violon", "La flûte"],
+    "answer": "Le piano"
+  },
+  {
+    "theme": "Musique",
+    "difficulty": "moyen",
+    "question": "De quelle ville britannique le groupe 'The Beatles' est-il originaire ?",
+    "options": ["Londres", "Manchester", "Liverpool", "Birmingham"],
+    "answer": "Liverpool"
+  },
+  {
+    "theme": "Musique",
+    "difficulty": "moyen",
+    "question": "Quel compositeur a écrit 'Les Quatre Saisons' ?",
+    "options": ["Mozart", "Beethoven", "Bach", "Vivaldi"],
+    "answer": "Vivaldi"
+  },
+  {
+    "theme": "Musique",
+    "difficulty": "moyen",
+    "question": "De quel instrument jouait Louis Armstrong ?",
+    "options": ["Saxophone", "Trompette", "Batterie", "Contrebasse"],
+    "answer": "Trompette"
+  },
+  {
+    "theme": "Musique",
+    "difficulty": "difficile",
+    "question": "Combien de touches possède un piano de concert standard ?",
+    "options": ["66", "88", "92", "76"],
+    "answer": "88"
+  },
+  {
+    "theme": "Musique",
+    "difficulty": "difficile",
+    "question": "Quelle est la fréquence standard du 'La' (A4) de référence ?",
+    "options": ["432 Hz", "440 Hz", "442 Hz", "450 Hz"],
+    "answer": "440 Hz"
+  },
+  {
+    "theme": "Musique",
+    "difficulty": "difficile",
+    "question": "Quel groupe a sorti l'album culte 'Dark Side of the Moon' ?",
+    "options": ["Led Zeppelin", "The Rolling Stones", "Pink Floyd", "Queen"],
+    "answer": "Pink Floyd"
+  },
+  {
+    "theme": "Animaux",
+    "difficulty": "facile",
+    "question": "Quel est le plus grand animal vivant sur Terre ?",
+    "options": ["L'éléphant", "La girafe", "Le requin baleine", "La baleine bleue"],
+    "answer": "La baleine bleue"
+  },
+  {
+    "theme": "Animaux",
+    "difficulty": "facile",
+    "question": "Quel animal aboie ?",
+    "options": ["Le chat", "Le chien", "Le loup", "Le renard"],
+    "answer": "Le chien"
+  },
+  {
+    "theme": "Animaux",
+    "difficulty": "facile",
+    "question": "De quoi se nourrissent principalement les pandas géants ?",
+    "options": ["De viande", "De poisson", "De bambou", "De fruits"],
+    "answer": "De bambou"
+  },
+  {
+    "theme": "Animaux",
+    "difficulty": "moyen",
+    "question": "Quel est l'animal terrestre le plus rapide ?",
+    "options": ["Le lion", "La gazelle", "Le guépard", "Le léopard"],
+    "answer": "Le guépard"
+  },
+  {
+    "theme": "Animaux",
+    "difficulty": "moyen",
+    "question": "Combien de pattes ont les arachnides (araignées) ?",
+    "options": ["4", "6", "8", "10"],
+    "answer": "8"
+  },
+  {
+    "theme": "Animaux",
+    "difficulty": "moyen",
+    "question": "Comment appelle-t-on les animaux qui portent leurs petits dans une poche ventrale ?",
+    "options": ["Les mammifères", "Les marsupiaux", "Les amphibiens", "Les primates"],
+    "answer": "Les marsupiaux"
+  },
+  {
+    "theme": "Animaux",
+    "difficulty": "difficile",
+    "question": "Quel est le seul oiseau capable de voler à reculons ?",
+    "options": ["L'aigle", "Le colibri", "Le martinet", "L'hirondelle"],
+    "answer": "Le colibri"
+  },
+  {
+    "theme": "Animaux",
+    "difficulty": "difficile",
+    "question": "Quel mammifère a la particularité de pondre des œufs ?",
+    "options": ["Le tatou", "L'ornithorynque", "Le koala", "Le paresseux"],
+    "answer": "L'ornithorynque"
+  },
+  {
+    "theme": "Animaux",
+    "difficulty": "difficile",
+    "question": "Combien de coeurs possède une pieuvre (poulpe) ?",
+    "options": ["1", "2", "3", "4"],
+    "answer": "3"
+  },
+  {
+    "theme": "Histoire",
+    "difficulty": "facile",
+    "question": "En quelle année a débuté la Première Guerre mondiale ?",
+    "options": ["1914", "1918", "1939", "1945"],
+    "answer": "1914"
+  },
+  {
+    "theme": "Histoire",
+    "difficulty": "facile",
+    "question": "Quel célèbre empereur français a perdu la bataille de Waterloo ?",
+    "options": ["Charlemagne", "Louis XIV", "Napoléon Ier", "Henri IV"],
+    "answer": "Napoléon Ier"
+  },
+  {
+    "theme": "Histoire",
+    "difficulty": "facile",
+    "question": "Dans quel pays se trouvent les grandes pyramides de Gizeh ?",
+    "options": ["Grèce", "Mexique", "Chine", "Égypte"],
+    "answer": "Égypte"
+  },
+  {
+    "theme": "Histoire",
+    "difficulty": "moyen",
+    "question": "En quelle année le Mur de Berlin est-il tombé ?",
+    "options": ["1989", "1991", "1975", "1961"],
+    "answer": "1989"
+  },
+  {
+    "theme": "Histoire",
+    "difficulty": "moyen",
+    "question": "Quel roi de France était surnommé le 'Roi-Soleil' ?",
+    "options": ["Louis XIII", "Louis XIV", "Louis XVI", "François Ier"],
+    "answer": "Louis XIV"
+  },
+  {
+    "theme": "Histoire",
+    "difficulty": "moyen",
+    "question": "Qui a découvert l'Amérique en 1492 ?",
+    "options": ["Vasco de Gama", "Christophe Colomb", "Magellan", "Jacques Cartier"],
+    "answer": "Christophe Colomb"
+  },
+  {
+    "theme": "Histoire",
+    "difficulty": "difficile",
+    "question": "Combien de temps a duré la Guerre de Cent Ans ?",
+    "options": ["100 ans", "116 ans", "99 ans", "105 ans"],
+    "answer": "116 ans"
+  },
+  {
+    "theme": "Histoire",
+    "difficulty": "difficile",
+    "question": "Qui a déchiffré les hiéroglyphes grâce à la pierre de Rosette ?",
+    "options": ["Champollion", "Howard Carter", "Napoléon", "Victor Hugo"],
+    "answer": "Champollion"
+  },
+  {
+    "theme": "Histoire",
+    "difficulty": "difficile",
+    "question": "Quel président américain a aboli l'esclavage ?",
+    "options": ["George Washington", "Thomas Jefferson", "Abraham Lincoln", "J.F. Kennedy"],
+    "answer": "Abraham Lincoln"
+  },
+  {
+    "theme": "Jeux Vidéo",
+    "difficulty": "facile",
+    "question": "Quel est le nom du frère de Mario ?",
+    "options": ["Wario", "Luigi", "Yoshi", "Toad"],
+    "answer": "Luigi"
+  },
+  {
+    "theme": "Jeux Vidéo",
+    "difficulty": "facile",
+    "question": "Quelle créature jaune est la mascotte de Pokémon ?",
+    "options": ["Pikachu", "Salamèche", "Bulbizarre", "Rondoudou"],
+    "answer": "Pikachu"
+  },
+  {
+    "theme": "Jeux Vidéo",
+    "difficulty": "facile",
+    "question": "Dans quel jeu doit-on empiler des briques de formes différentes ?",
+    "options": ["Pac-Man", "Pong", "Tetris", "Snake"],
+    "answer": "Tetris"
+  },
+  {
+    "theme": "Jeux Vidéo",
+    "difficulty": "moyen",
+    "question": "Quelle est l'héroïne de la série 'Tomb Raider' ?",
+    "options": ["Zelda", "Samus Aran", "Peach", "Lara Croft"],
+    "answer": "Lara Croft"
+  },
+  {
+    "theme": "Jeux Vidéo",
+    "difficulty": "moyen",
+    "question": "Quel studio a créé le jeu 'Fortnite' ?",
+    "options": ["Ubisoft", "Epic Games", "Activision", "Electronic Arts"],
+    "answer": "Epic Games"
+  },
+  {
+    "theme": "Jeux Vidéo",
+    "difficulty": "moyen",
+    "question": "Quel hérisson bleu est la mascotte de Sega ?",
+    "options": ["Knuckles", "Tails", "Shadow", "Sonic"],
+    "answer": "Sonic"
+  },
+  {
+    "theme": "Jeux Vidéo",
+    "difficulty": "difficile",
+    "question": "Qui est le créateur légendaire de Mario et Zelda ?",
+    "options": ["Hideo Kojima", "Satoru Iwata", "Shigeru Miyamoto", "Masahiro Sakurai"],
+    "answer": "Shigeru Miyamoto"
+  },
+  {
+    "theme": "Jeux Vidéo",
+    "difficulty": "difficile",
+    "question": "En quelle année la première Game Boy est-elle sortie au Japon ?",
+    "options": ["1989", "1991", "1985", "1995"],
+    "answer": "1989"
+  },
+  {
+    "theme": "Jeux Vidéo",
+    "difficulty": "difficile",
+    "question": "Quel est le jeu vidéo le plus vendu de tous les temps (au monde) ?",
+    "options": ["GTA V", "Tetris", "Minecraft", "Wii Sports"],
+    "answer": "Minecraft"
+  },
+  {
+    "theme": "Sciences",
+    "difficulty": "facile",
+    "question": "Quelle est la formule chimique de l'eau ?",
+    "options": ["CO2", "H2O", "O2", "NaCl"],
+    "answer": "H2O"
+  },
+  {
+    "theme": "Sciences",
+    "difficulty": "facile",
+    "question": "À quelle température l'eau bout-elle (au niveau de la mer) ?",
+    "options": ["90°C", "100°C", "110°C", "120°C"],
+    "answer": "100°C"
+  },
+  {
+    "theme": "Sciences",
+    "difficulty": "facile",
+    "question": "Quel organe permet de pomper le sang dans le corps humain ?",
+    "options": ["Le foie", "Le cerveau", "Le coeur", "L'estomac"],
+    "answer": "Le coeur"
+  },
+  {
+    "theme": "Sciences",
+    "difficulty": "moyen",
+    "question": "Quel élément chimique a pour symbole 'Au' ?",
+    "options": ["Argent", "Aluminium", "Or", "Azote"],
+    "answer": "Or"
+  },
+  {
+    "theme": "Sciences",
+    "difficulty": "moyen",
+    "question": "Quel est le minéral naturel le plus dur ?",
+    "options": ["Le rubis", "Le diamant", "Le quartz", "Le fer"],
+    "answer": "Le diamant"
+  },
+  {
+    "theme": "Sciences",
+    "difficulty": "moyen",
+    "question": "Comment appelle-t-on le processus par lequel les plantes transforment la lumière en énergie ?",
+    "options": ["La respiration", "L'évaporation", "La photosynthèse", "La digestion"],
+    "answer": "La photosynthèse"
+  },
+  {
+    "theme": "Sciences",
+    "difficulty": "difficile",
+    "question": "Qui a découvert la pénicilline ?",
+    "options": ["Louis Pasteur", "Alexander Fleming", "Marie Curie", "Charles Darwin"],
+    "answer": "Alexander Fleming"
+  },
+  {
+    "theme": "Sciences",
+    "difficulty": "difficile",
+    "question": "Quelle est la vitesse approximative de la lumière ?",
+    "options": ["300 000 km/s", "150 000 km/s", "1 000 km/s", "3 000 km/s"],
+    "answer": "300 000 km/s"
+  },
+  {
+    "theme": "Sciences",
+    "difficulty": "difficile",
+    "question": "Combien de paires de chromosomes possède un être humain sain ?",
+    "options": ["20", "23", "46", "24"],
+    "answer": "23"
+  },
+  {
+    "theme": "Littérature",
+    "difficulty": "facile",
+    "question": "Qui a écrit la saga Harry Potter ?",
+    "options": ["J.R.R. Tolkien", "J.K. Rowling", "Stephen King", "George R.R. Martin"],
+    "answer": "J.K. Rowling"
+  },
+  {
+    "theme": "Littérature",
+    "difficulty": "facile",
+    "question": "Quel célèbre détective habite au 221B Baker Street ?",
+    "options": ["Hercule Poirot", "Sherlock Holmes", "Arsène Lupin", "Columbo"],
+    "answer": "Sherlock Holmes"
+  },
+  {
+    "theme": "Littérature",
+    "difficulty": "facile",
+    "question": "Dans 'Les Trois Mousquetaires', combien sont-ils inséparables ?",
+    "options": ["2", "3", "4", "5"],
+    "answer": "4"
+  },
+  {
+    "theme": "Littérature",
+    "difficulty": "moyen",
+    "question": "Qui est l'auteur des 'Misérables' ?",
+    "options": ["Émile Zola", "Victor Hugo", "Gustave Flaubert", "Albert Camus"],
+    "answer": "Victor Hugo"
+  },
+  {
+    "theme": "Littérature",
+    "difficulty": "moyen",
+    "question": "Quel livre raconte l'histoire d'un petit garçon venant de l'astéroïde B612 ?",
+    "options": ["Peter Pan", "Le Petit Prince", "Pinocchio", "L'Enfant Océan"],
+    "answer": "Le Petit Prince"
+  },
+  {
+    "theme": "Littérature",
+    "difficulty": "moyen",
+    "question": "Qui a écrit le roman dystopique '1984' ?",
+    "options": ["Aldous Huxley", "Ray Bradbury", "George Orwell", "Isaac Asimov"],
+    "answer": "George Orwell"
+  },
+  {
+    "theme": "Littérature",
+    "difficulty": "difficile",
+    "question": "Quel est le vrai nom de Molière ?",
+    "options": ["Jean-Baptiste Poquelin", "François-Marie Arouet", "Charles de Batz", "Jean Racine"],
+    "answer": "Jean-Baptiste Poquelin"
+  },
+  {
+    "theme": "Littérature",
+    "difficulty": "difficile",
+    "question": "Quel poète a écrit le recueil 'Les Fleurs du mal' ?",
+    "options": ["Arthur Rimbaud", "Paul Verlaine", "Charles Baudelaire", "Guillaume Apollinaire"],
+    "answer": "Charles Baudelaire"
+  },
+  {
+    "theme": "Littérature",
+    "difficulty": "difficile",
+    "question": "Dans quelle langue 'La Divine Comédie' a-t-elle été écrite à l'origine ?",
+    "options": ["Latin", "Italien", "Français", "Espagnol"],
+    "answer": "Italien"
+  },
+  {
+    "theme": "Technologies",
+    "difficulty": "facile",
+    "question": "Quel fruit croqué est le logo de la marque Apple ?",
+    "options": ["Une poire", "Une pomme", "Une cerise", "Une orange"],
+    "answer": "Une pomme"
+  },
+  {
+    "theme": "Technologies",
+    "difficulty": "facile",
+    "question": "Qui a fondé Microsoft ?",
+    "options": ["Steve Jobs", "Elon Musk", "Bill Gates", "Mark Zuckerberg"],
+    "answer": "Bill Gates"
+  },
+  {
+    "theme": "Technologies",
+    "difficulty": "facile",
+    "question": "À quoi sert principalement le Wi-Fi ?",
+    "options": ["À cuisiner", "À se connecter à internet sans fil", "À prendre des photos", "À écouter de la musique"],
+    "answer": "À se connecter à internet sans fil"
+  },
+  {
+    "theme": "Technologies",
+    "difficulty": "moyen",
+    "question": "Que signifient les initiales 'www' sur internet ?",
+    "options": ["World Wide Web", "World Web Wares", "Wide World Web", "Web World Wide"],
+    "answer": "World Wide Web"
+  },
+  {
+    "theme": "Technologies",
+    "difficulty": "moyen",
+    "question": "En quelle année le premier iPhone a-t-il été commercialisé ?",
+    "options": ["2005", "2007", "2009", "2010"],
+    "answer": "2007"
+  },
+  {
+    "theme": "Technologies",
+    "difficulty": "moyen",
+    "question": "Quel réseau social a été créé par Mark Zuckerberg ?",
+    "options": ["Twitter", "Snapchat", "Facebook", "TikTok"],
+    "answer": "Facebook"
+  },
+  {
+    "theme": "Technologies",
+    "difficulty": "difficile",
+    "question": "Qui est considéré comme le 'père' de l'informatique moderne (machine Enigma) ?",
+    "options": ["Alan Turing", "Nikola Tesla", "Thomas Edison", "Albert Einstein"],
+    "answer": "Alan Turing"
+  },
+  {
+    "theme": "Technologies",
+    "difficulty": "difficile",
+    "question": "Quel est le nom de la première programmeuse de l'histoire ?",
+    "options": ["Grace Hopper", "Ada Lovelace", "Marie Curie", "Hedy Lamarr"],
+    "answer": "Ada Lovelace"
+  },
+  {
+    "theme": "Technologies",
+    "difficulty": "difficile",
+    "question": "Quel animal est la mascotte officielle du système Linux ?",
+    "options": ["Un chat", "Un chien", "Un manchot", "Un ours"],
+    "answer": "Un manchot"
+  },
+  {
+    "theme": "Gastronomie",
+    "difficulty": "facile",
+    "question": "Quel est l'ingrédient principal d'une omelette ?",
+    "options": ["La farine", "Le lait", "L'œuf", "Le sucre"],
+    "answer": "L'œuf"
+  },
+  {
+    "theme": "Gastronomie",
+    "difficulty": "facile",
+    "question": "De quel pays la pizza est-elle originaire ?",
+    "options": ["France", "États-Unis", "Italie", "Espagne"],
+    "answer": "Italie"
+  },
+  {
+    "theme": "Gastronomie",
+    "difficulty": "facile",
+    "question": "Quel aliment est à la base du chocolat ?",
+    "options": ["Le cacao", "Le café", "La vanille", "La noisette"],
+    "answer": "Le cacao"
+  },
+  {
+    "theme": "Gastronomie",
+    "difficulty": "moyen",
+    "question": "Quel fruit est l'ingrédient principal du Guacamole ?",
+    "options": ["La tomate", "L'avocat", "Le citron", "Le concombre"],
+    "answer": "L'avocat"
+  },
+  {
+    "theme": "Gastronomie",
+    "difficulty": "moyen",
+    "question": "Quel pays produit le Roquefort ?",
+    "options": ["Italie", "Suisse", "France", "Angleterre"],
+    "answer": "France"
+  },
+  {
+    "theme": "Gastronomie",
+    "difficulty": "moyen",
+    "question": "Avec quoi fabrique-t-on le Tofu ?",
+    "options": ["Du lait de vache", "Du riz", "Du soja", "Du blé"],
+    "answer": "Du soja"
+  },
+  {
+    "theme": "Gastronomie",
+    "difficulty": "difficile",
+    "question": "Quelle est l'épice la plus chère au monde (au poids) ?",
+    "options": ["La vanille", "Le safran", "La cardamome", "Le clou de girofle"],
+    "answer": "Le safran"
+  },
+  {
+    "theme": "Gastronomie",
+    "difficulty": "difficile",
+    "question": "Que mesure l'échelle de Scoville ?",
+    "options": ["L'amertume du café", "Le taux de sucre", "La force des piments", "L'acidité du citron"],
+    "answer": "La force des piments"
+  },
+  {
+    "theme": "Gastronomie",
+    "difficulty": "difficile",
+    "question": "Quel poisson, potentiellement mortel s'il est mal préparé, est un mets délicat au Japon ?",
+    "options": ["Le saumon", "Le thon rouge", "Le fugu", "La carpe koï"],
+    "answer": "Le fugu"
+  },
+  {
+    "theme": "Corps Humain",
+    "difficulty": "facile",
+    "question": "Combien de dents possède généralement un adulte (dents de sagesse incluses) ?",
+    "options": ["20", "28", "32", "36"],
+    "answer": "32"
+  },
+  {
+    "theme": "Corps Humain",
+    "difficulty": "facile",
+    "question": "Quel est le nom de l'os principal de la jambe (cuisse) ?",
+    "options": ["Le tibia", "Le fémur", "L'humérus", "Le péroné"],
+    "answer": "Le fémur"
+  },
+  {
+    "theme": "Corps Humain",
+    "difficulty": "facile",
+    "question": "Quel organe filtre le sang pour produire l'urine ?",
+    "options": ["Le cœur", "Le foie", "Les reins", "L'estomac"],
+    "answer": "Les reins"
+  },
+  {
+    "theme": "Corps Humain",
+    "difficulty": "moyen",
+    "question": "Quel est le plus grand organe du corps humain ?",
+    "options": ["Le foie", "La peau", "L'intestin grêle", "Les poumons"],
+    "answer": "La peau"
+  },
+  {
+    "theme": "Corps Humain",
+    "difficulty": "moyen",
+    "question": "Quel groupe sanguin est considéré comme 'donneur universel' ?",
+    "options": ["A+", "B-", "AB+", "O-"],
+    "answer": "O-"
+  },
+  {
+    "theme": "Corps Humain",
+    "difficulty": "moyen",
+    "question": "Combien d'os compte le squelette d'un adulte humain ?",
+    "options": ["156", "206", "306", "406"],
+    "answer": "206"
+  },
+  {
+    "theme": "Corps Humain",
+    "difficulty": "difficile",
+    "question": "Quel est l'os le plus petit du corps humain (situé dans l'oreille) ?",
+    "options": ["L'étrier", "L'enclume", "Le marteau", "Le coccyx"],
+    "answer": "L'étrier"
+  },
+  {
+    "theme": "Corps Humain",
+    "difficulty": "difficile",
+    "question": "Quelle est la substance la plus dure du corps humain ?",
+    "options": ["L'os du fémur", "L'émail des dents", "Les ongles", "Le crâne"],
+    "answer": "L'émail des dents"
+  },
+  {
+    "theme": "Corps Humain",
+    "difficulty": "difficile",
+    "question": "Comment appelle-t-on les cellules nerveuses du cerveau ?",
+    "options": ["Les neurones", "Les globules blancs", "Les plaquettes", "Les néphrons"],
+    "answer": "Les neurones"
+  },
+  {
+    "theme": "Mythologie",
+    "difficulty": "facile",
+    "question": "Qui est le roi des dieux dans la mythologie grecque ?",
+    "options": ["Poséidon", "Hadès", "Zeus", "Apollon"],
+    "answer": "Zeus"
+  },
+  {
+    "theme": "Mythologie",
+    "difficulty": "facile",
+    "question": "Quel dieu nordique possède un marteau magique nommé Mjöllnir ?",
+    "options": ["Odin", "Loki", "Thor", "Baldur"],
+    "answer": "Thor"
+  },
+  {
+    "theme": "Mythologie",
+    "difficulty": "facile",
+    "question": "Quelle créature mythologique est mi-homme, mi-cheval ?",
+    "options": ["Le Minotaure", "Le Centaure", "La Sirène", "Le Sphinx"],
+    "answer": "Le Centaure"
+  },
+  {
+    "theme": "Mythologie",
+    "difficulty": "moyen",
+    "question": "Dans la mythologie égyptienne, qui est le dieu des morts à tête de chacal ?",
+    "options": ["Râ", "Osiris", "Anubis", "Horus"],
+    "answer": "Anubis"
+  },
+  {
+    "theme": "Mythologie",
+    "difficulty": "moyen",
+    "question": "Quel héros grec a tué le Minotaure dans le labyrinthe ?",
+    "options": ["Hercule", "Thésée", "Achille", "Persée"],
+    "answer": "Thésée"
+  },
+  {
+    "theme": "Mythologie",
+    "difficulty": "moyen",
+    "question": "Quel est le nom romain du dieu grec Poséidon ?",
+    "options": ["Jupiter", "Mars", "Neptune", "Pluton"],
+    "answer": "Neptune"
+  },
+  {
+    "theme": "Mythologie",
+    "difficulty": "difficile",
+    "question": "Comment s'appelle la fin du monde prophétique dans la mythologie nordique ?",
+    "options": ["Le Valhalla", "Le Ragnarök", "L'Yggdrasil", "Le Niflheim"],
+    "answer": "Le Ragnarök"
+  },
+  {
+    "theme": "Mythologie",
+    "difficulty": "difficile",
+    "question": "Qui est le passeur des Enfers qui fait traverser le Styx aux âmes ?",
+    "options": ["Hadès", "Charon", "Cerbère", "Thanatos"],
+    "answer": "Charon"
+  },
+  {
+    "theme": "Mythologie",
+    "difficulty": "difficile",
+    "question": "Combien de travaux Hercule a-t-il dû accomplir ?",
+    "options": ["7", "10", "12", "15"],
+    "answer": "12"
+  },
+  {
+    "theme": "Art",
+    "difficulty": "facile",
+    "question": "Qui a peint la Joconde (Mona Lisa) ?",
+    "options": ["Michel-Ange", "Raphaël", "Léonard de Vinci", "Vincent Van Gogh"],
+    "answer": "Léonard de Vinci"
+  },
+  {
+    "theme": "Art",
+    "difficulty": "facile",
+    "question": "Dans quelle ville se trouve le musée du Louvre ?",
+    "options": ["Londres", "New York", "Paris", "Rome"],
+    "answer": "Paris"
+  },
+  {
+    "theme": "Art",
+    "difficulty": "facile",
+    "question": "À quel peintre associe-t-on souvent les tournesols ?",
+    "options": ["Claude Monet", "Vincent Van Gogh", "Pablo Picasso", "Salvador Dalí"],
+    "answer": "Vincent Van Gogh"
+  },
+  {
+    "theme": "Art",
+    "difficulty": "moyen",
+    "question": "Quel artiste espagnol est célèbre pour le cubisme ?",
+    "options": ["Salvador Dalí", "Francisco Goya", "Pablo Picasso", "Diego Velázquez"],
+    "answer": "Pablo Picasso"
+  },
+  {
+    "theme": "Art",
+    "difficulty": "moyen",
+    "question": "Qui a sculpté 'Le Penseur' ?",
+    "options": ["Auguste Rodin", "Camille Claudel", "Michel-Ange", "Donatello"],
+    "answer": "Auguste Rodin"
+  },
+  {
+    "theme": "Art",
+    "difficulty": "moyen",
+    "question": "Quel architecte a conçu la Sagrada Família à Barcelone ?",
+    "options": ["Le Corbusier", "Gustave Eiffel", "Antoni Gaudí", "Frank Lloyd Wright"],
+    "answer": "Antoni Gaudí"
+  },
+  {
+    "theme": "Art",
+    "difficulty": "difficile",
+    "question": "Quel peintre est célèbre pour ses horloges molles ('La Persistance de la mémoire') ?",
+    "options": ["René Magritte", "Salvador Dalí", "Joan Miró", "Frida Kahlo"],
+    "answer": "Salvador Dalí"
+  },
+  {
+    "theme": "Art",
+    "difficulty": "difficile",
+    "question": "Quelle partie du corps manque à la célèbre statue de la Vénus de Milo ?",
+    "options": ["La tête", "Les jambes", "Les bras", "Le nez"],
+    "answer": "Les bras"
+  },
+  {
+    "theme": "Art",
+    "difficulty": "difficile",
+    "question": "Quel artiste de Street Art britannique est mondialement connu mais anonyme ?",
+    "options": ["Invader", "Banksy", "Shepard Fairey", "Keith Haring"],
+    "answer": "Banksy"
+  },
+  {
+    "theme": "Bande Dessinée",
+    "difficulty": "facile",
+    "question": "Quel est le nom du fidèle chien de Tintin ?",
+    "options": ["Rantanplan", "Milou", "Idéfix", "Snoopy"],
+    "answer": "Milou"
+  },
+  {
+    "theme": "Bande Dessinée",
+    "difficulty": "facile",
+    "question": "Dans 'Astérix', quel personnage est tombé dans la marmite de potion magique quand il était petit ?",
+    "options": ["Astérix", "Panoramix", "Obélix", "Abraracourcix"],
+    "answer": "Obélix"
+  },
+  {
+    "theme": "Bande Dessinée",
+    "difficulty": "facile",
+    "question": "Quel super-héros a été mordu par une araignée radioactive ?",
+    "options": ["Batman", "Superman", "Spider-Man", "Iron Man"],
+    "answer": "Spider-Man"
+  },
+  {
+    "theme": "Bande Dessinée",
+    "difficulty": "moyen",
+    "question": "Quel est le manga le plus vendu au monde (écrit par Eiichiro Oda) ?",
+    "options": ["Dragon Ball", "Naruto", "One Piece", "Demon Slayer"],
+    "answer": "One Piece"
+  },
+  {
+    "theme": "Bande Dessinée",
+    "difficulty": "moyen",
+    "question": "Quel est le vrai nom de Batman ?",
+    "options": ["Clark Kent", "Bruce Wayne", "Peter Parker", "Tony Stark"],
+    "answer": "Bruce Wayne"
+  },
+  {
+    "theme": "Bande Dessinée",
+    "difficulty": "moyen",
+    "question": "Quel cow-boy tire plus vite que son ombre ?",
+    "options": ["Lucky Luke", "Blueberry", "Tex Willer", "Billy the Kid"],
+    "answer": "Lucky Luke"
+  },
+  {
+    "theme": "Bande Dessinée",
+    "difficulty": "difficile",
+    "question": "Qui a créé le personnage de Gaston Lagaffe ?",
+    "options": ["Hergé", "Franquin", "Peyo", "Uderzo"],
+    "answer": "Franquin"
+  },
+  {
+    "theme": "Bande Dessinée",
+    "difficulty": "difficile",
+    "question": "Dans l'univers Marvel, de quel métal est fait le bouclier de Captain America ?",
+    "options": ["Adamantium", "Vibranium", "Titane", "Acier Valyrien"],
+    "answer": "Vibranium"
+  },
+  {
+    "theme": "Bande Dessinée",
+    "difficulty": "difficile",
+    "question": "Quel est le prénom du père de Naruto ?",
+    "options": ["Jiraya", "Kakashi", "Minato", "Itachi"],
+    "answer": "Minato"
+  },
+  {
+    "theme": "Séries TV",
+    "difficulty": "facile",
+    "question": "Dans la série 'Friends', combien y a-t-il d'amis principaux ?",
+    "options": ["4", "5", "6", "7"],
+    "answer": "6"
+  },
+  {
+    "theme": "Séries TV",
+    "difficulty": "facile",
+    "question": "Quelle série met en scène des trônes, des dragons et des marcheurs blancs ?",
+    "options": ["Le Seigneur des Anneaux", "Game of Thrones", "The Witcher", "Vikings"],
+    "answer": "Game of Thrones"
+  },
+  {
+    "theme": "Séries TV",
+    "difficulty": "facile",
+    "question": "Quelle famille jaune habite à Springfield ?",
+    "options": ["Les Griffin", "Les Simpson", "Les Smith", "Les Jetson"],
+    "answer": "Les Simpson"
+  },
+  {
+    "theme": "Séries TV",
+    "difficulty": "moyen",
+    "question": "Dans 'Breaking Bad', quel est le surnom d'Heisenberg ?",
+    "options": ["Jesse Pinkman", "Gustavo Fring", "Walter White", "Saul Goodman"],
+    "answer": "Walter White"
+  },
+  {
+    "theme": "Séries TV",
+    "difficulty": "moyen",
+    "question": "Dans 'La Casa de Papel', quel nom de ville porte le Professeur ?",
+    "options": ["Berlin", "Tokyo", "Rio", "Aucun, il est 'Le Professeur'"],
+    "answer": "Aucun, il est 'Le Professeur'"
+  },
+  {
+    "theme": "Séries TV",
+    "difficulty": "moyen",
+    "question": "Quelle série se déroule dans la ville fictive de Hawkins ?",
+    "options": ["Dark", "Stranger Things", "Riverdale", "Supernatural"],
+    "answer": "Stranger Things"
+  },
+  {
+    "theme": "Séries TV",
+    "difficulty": "difficile",
+    "question": "Qui a créé la série 'Black Mirror' ?",
+    "options": ["Charlie Brooker", "J.J. Abrams", "David Fincher", "Ryan Murphy"],
+    "answer": "Charlie Brooker"
+  },
+  {
+    "theme": "Séries TV",
+    "difficulty": "difficile",
+    "question": "Quelle est la série médicale la plus longue de l'histoire de la télé américaine ?",
+    "options": ["Urgences", "Dr House", "Grey's Anatomy", "Good Doctor"],
+    "answer": "Grey's Anatomy"
+  },
+  {
+    "theme": "Séries TV",
+    "difficulty": "difficile",
+    "question": "Dans 'The Office' (US), comment s'appelle l'entreprise de papier ?",
+    "options": ["Wernham Hogg", "Dunder Mifflin", "Paper Co.", "Sabre"],
+    "answer": "Dunder Mifflin"
+  },
+  {
+    "theme": "Chimie",
+    "difficulty": "facile",
+    "question": "Quel gaz respirons-nous principalement pour survivre ?",
+    "options": ["L'hélium", "Le dioxygène", "Le méthane", "Le néon"],
+    "answer": "Le dioxygène"
+  },
+  {
+    "theme": "Chimie",
+    "difficulty": "facile",
+    "question": "Quel est l'état de l'eau à -5°C à pression ambiante ?",
+    "options": ["Liquide", "Solide", "Gazeux", "Plasma"],
+    "answer": "Solide"
+  },
+  {
+    "theme": "Chimie",
+    "difficulty": "facile",
+    "question": "Quel métal est liquide à température ambiante ?",
+    "options": ["Le fer", "L'aluminium", "Le mercure", "Le cuivre"],
+    "answer": "Le mercure"
+  },
+  {
+    "theme": "Chimie",
+    "difficulty": "moyen",
+    "question": "Quel est le symbole chimique du fer ?",
+    "options": ["F", "Fe", "Ir", "Fr"],
+    "answer": "Fe"
+  },
+  {
+    "theme": "Chimie",
+    "difficulty": "moyen",
+    "question": "Quel est le pH de l'eau pure (neutre) ?",
+    "options": ["0", "5", "7", "14"],
+    "answer": "7"
+  },
+  {
+    "theme": "Chimie",
+    "difficulty": "moyen",
+    "question": "De quoi est composé un atome ?",
+    "options": ["Noyau et électrons", "Cellules et eau", "Molécules et gaz", "Protons uniquement"],
+    "answer": "Noyau et électrons"
+  },
+  {
+    "theme": "Chimie",
+    "difficulty": "difficile",
+    "question": "Qui a créé le tableau périodique des éléments ?",
+    "options": ["Einstein", "Newton", "Mendeleïev", "Lavoisier"],
+    "answer": "Mendeleïev"
+  },
+  {
+    "theme": "Chimie",
+    "difficulty": "difficile",
+    "question": "Quel est le gaz noble le plus léger ?",
+    "options": ["L'hélium", "L'argon", "Le xénon", "Le krypton"],
+    "answer": "L'hélium"
+  },
+  {
+    "theme": "Chimie",
+    "difficulty": "difficile",
+    "question": "Quel acide trouve-t-on naturellement dans le citron ?",
+    "options": ["Acide sulfurique", "Acide citrique", "Acide lactique", "Acide chlorhydrique"],
+    "answer": "Acide citrique"
+  },
+  {
+    "theme": "Mathématiques",
+    "difficulty": "facile",
+    "question": "Combien font 7 fois 8 ?",
+    "options": ["54", "56", "58", "64"],
+    "answer": "56"
+  },
+  {
+    "theme": "Mathématiques",
+    "difficulty": "facile",
+    "question": "Combien de degrés mesure un angle droit ?",
+    "options": ["45°", "90°", "180°", "360°"],
+    "answer": "90°"
+  },
+  {
+    "theme": "Mathématiques",
+    "difficulty": "facile",
+    "question": "Quel chiffre est considéré comme l'élément neutre de l'addition ?",
+    "options": ["0", "1", "10", "Infini"],
+    "answer": "0"
+  },
+  {
+    "theme": "Mathématiques",
+    "difficulty": "moyen",
+    "question": "Quelle est la racine carrée de 81 ?",
+    "options": ["7", "8", "9", "10"],
+    "answer": "9"
+  },
+  {
+    "theme": "Mathématiques",
+    "difficulty": "moyen",
+    "question": "Comment appelle-t-on un triangle qui a 3 côtés de même longueur ?",
+    "options": ["Isocèle", "Rectangle", "Scalène", "Équilatéral"],
+    "answer": "Équilatéral"
+  },
+  {
+    "theme": "Mathématiques",
+    "difficulty": "moyen",
+    "question": "Quelle lettre est le plus souvent utilisée pour désigner une inconnue en algèbre ?",
+    "options": ["A", "X", "Y", "N"],
+    "answer": "X"
+  },
+  {
+    "theme": "Mathématiques",
+    "difficulty": "difficile",
+    "question": "Quelle est la valeur approchée de Pi (π) à deux décimales ?",
+    "options": ["3,12", "3,14", "3,16", "3,18"],
+    "answer": "3,14"
+  },
+  {
+    "theme": "Mathématiques",
+    "difficulty": "difficile",
+    "question": "Combien de faces possède un cube ?",
+    "options": ["4", "6", "8", "12"],
+    "answer": "6"
+  },
+  {
+    "theme": "Mathématiques",
+    "difficulty": "difficile",
+    "question": "Quel est le prochain nombre de la suite de Fibonacci : 1, 1, 2, 3, 5... ?",
+    "options": ["6", "7", "8", "10"],
+    "answer": "8"
+  },
+  {
+    "theme": "Célébrités",
+    "difficulty": "facile",
+    "question": "Quelle star de la télé-réalité a été mariée au rappeur Kanye West ?",
+    "options": ["Kylie Jenner", "Paris Hilton", "Kim Kardashian", "Beyoncé"],
+    "answer": "Kim Kardashian"
+  },
+  {
+    "theme": "Célébrités",
+    "difficulty": "facile",
+    "question": "Quel acteur incarne 'Iron Man' au cinéma ?",
+    "options": ["Brad Pitt", "Tom Cruise", "Robert Downey Jr.", "Chris Evans"],
+    "answer": "Robert Downey Jr."
+  },
+  {
+    "theme": "Célébrités",
+    "difficulty": "facile",
+    "question": "Quelle chanteuse a interprété le tube 'Baby One More Time' ?",
+    "options": ["Madonna", "Britney Spears", "Christina Aguilera", "Lady Gaga"],
+    "answer": "Britney Spears"
+  },
+  {
+    "theme": "Célébrités",
+    "difficulty": "moyen",
+    "question": "Quelle chanteuse originaire de la Barbade a créé la marque Fenty ?",
+    "options": ["Nicki Minaj", "Rihanna", "Beyoncé", "Shakira"],
+    "answer": "Rihanna"
+  },
+  {
+    "theme": "Célébrités",
+    "difficulty": "moyen",
+    "question": "Qui a présenté le célèbre talk-show américain 'The Oprah Winfrey Show' ?",
+    "options": ["Ellen DeGeneres", "Michelle Obama", "Oprah Winfrey", "Whoopi Goldberg"],
+    "answer": "Oprah Winfrey"
+  },
+  {
+    "theme": "Célébrités",
+    "difficulty": "moyen",
+    "question": "Quel entrepreneur a fondé SpaceX et Tesla ?",
+    "options": ["Jeff Bezos", "Bill Gates", "Elon Musk", "Mark Zuckerberg"],
+    "answer": "Elon Musk"
+  },
+  {
+    "theme": "Célébrités",
+    "difficulty": "difficile",
+    "question": "Quel est le vrai nom de Lady Gaga ?",
+    "options": ["Stefani Germanotta", "Robyn Fenty", "Katheryn Hudson", "Destiny Hope"],
+    "answer": "Stefani Germanotta"
+  },
+  {
+    "theme": "Célébrités",
+    "difficulty": "difficile",
+    "question": "Quelle actrice américaine est devenue Princesse de Monaco ?",
+    "options": ["Marilyn Monroe", "Grace Kelly", "Audrey Hepburn", "Elizabeth Taylor"],
+    "answer": "Grace Kelly"
+  },
+  {
+    "theme": "Célébrités",
+    "difficulty": "difficile",
+    "question": "Qui est le père de l'actrice Angelina Jolie ?",
+    "options": ["Al Pacino", "Jon Voight", "Robert De Niro", "Dustin Hoffman"],
+    "answer": "Jon Voight"
+  },
+  {
+    "theme": "Nature",
+    "difficulty": "facile",
+    "question": "Quelle saison vient juste après le printemps ?",
+    "options": ["L'automne", "L'hiver", "L'été", "Le printemps encore"],
+    "answer": "L'été"
+  },
+  {
+    "theme": "Nature",
+    "difficulty": "facile",
+    "question": "Quelle catastrophe naturelle est mesurée par l'échelle de Richter ?",
+    "options": ["Un ouragan", "Un tsunami", "Un séisme", "Une tornade"],
+    "answer": "Un séisme"
+  },
+  {
+    "theme": "Nature",
+    "difficulty": "facile",
+    "question": "De quoi est formée la neige ?",
+    "options": ["De sel", "De sucre", "De cristaux de glace", "De coton"],
+    "answer": "De cristaux de glace"
+  },
+  {
+    "theme": "Nature",
+    "difficulty": "moyen",
+    "question": "Quel gaz les arbres rejettent-ils dans l'atmosphère ?",
+    "options": ["Dioxyde de carbone", "Oxygène", "Méthane", "Azote"],
+    "answer": "Oxygène"
+  },
+  {
+    "theme": "Nature",
+    "difficulty": "moyen",
+    "question": "Quel arbre produit des glands ?",
+    "options": ["Le sapin", "Le bouleau", "Le chêne", "L'érable"],
+    "answer": "Le chêne"
+  },
+  {
+    "theme": "Nature",
+    "difficulty": "moyen",
+    "question": "Comment appelle-t-on l'étude scientifique des champignons ?",
+    "options": ["Botanique", "Zoologie", "Mycologie", "Géologie"],
+    "answer": "Mycologie"
+  },
+  {
+    "theme": "Nature",
+    "difficulty": "difficile",
+    "question": "Quel pigment donne leur couleur verte aux plantes ?",
+    "options": ["La mélanine", "La chlorophylle", "L'hémoglobine", "Le carotène"],
+    "answer": "La chlorophylle"
+  },
+  {
+    "theme": "Nature",
+    "difficulty": "difficile",
+    "question": "Quelle couche de l'atmosphère nous protège des rayons ultraviolets ?",
+    "options": ["La couche d'ozone", "La stratosphère", "La troposphère", "L'ionosphère"],
+    "answer": "La couche d'ozone"
+  },
+  {
+    "theme": "Nature",
+    "difficulty": "difficile",
+    "question": "Quel type de nuage immense est souvent associé aux orages ?",
+    "options": ["Cumulus", "Cirrus", "Stratus", "Cumulonimbus"],
+    "answer": "Cumulonimbus"
+  },
+  {
+    "theme": "Automobile",
+    "difficulty": "facile",
+    "question": "Quelle marque automobile a pour logo quatre anneaux entrelacés ?",
+    "options": ["BMW", "Mercedes", "Audi", "Volkswagen"],
+    "answer": "Audi"
+  },
+  {
+    "theme": "Automobile",
+    "difficulty": "facile",
+    "question": "Quelle est la couleur emblématique des voitures Ferrari ?",
+    "options": ["Jaune", "Noir", "Rouge", "Bleu"],
+    "answer": "Rouge"
+  },
+  {
+    "theme": "Automobile",
+    "difficulty": "facile",
+    "question": "À quoi sert la pédale de droite sur une voiture automatique ?",
+    "options": ["À freiner", "À accélérer", "À embrayer", "À klaxonner"],
+    "answer": "À accélérer"
+  },
+  {
+    "theme": "Automobile",
+    "difficulty": "moyen",
+    "question": "De quel pays est originaire la marque Volvo ?",
+    "options": ["Allemagne", "Suède", "États-Unis", "Japon"],
+    "answer": "Suède"
+  },
+  {
+    "theme": "Automobile",
+    "difficulty": "moyen",
+    "question": "Quel constructeur américain produit la célèbre Mustang ?",
+    "options": ["Chevrolet", "Dodge", "Ford", "Chrysler"],
+    "answer": "Ford"
+  },
+  {
+    "theme": "Automobile",
+    "difficulty": "moyen",
+    "question": "Que signifient les lettres BMW ?",
+    "options": ["British Motor Works", "Bayerische Motoren Werke", "Berlin Motor Wagen", "Best Motor World"],
+    "answer": "Bayerische Motoren Werke"
+  },
+  {
+    "theme": "Automobile",
+    "difficulty": "difficile",
+    "question": "Quel pilote de Formule 1 partage le record de 7 titres mondiaux avec Michael Schumacher ?",
+    "options": ["Ayrton Senna", "Alain Prost", "Lewis Hamilton", "Max Verstappen"],
+    "answer": "Lewis Hamilton"
+  },
+  {
+    "theme": "Automobile",
+    "difficulty": "difficile",
+    "question": "En quelle année la Ford T, première voiture produite à la chaîne, a-t-elle été lancée ?",
+    "options": ["1908", "1915", "1920", "1899"],
+    "answer": "1908"
+  },
+  {
+    "theme": "Automobile",
+    "difficulty": "difficile",
+    "question": "Quelle est la marque de luxe du groupe Toyota ?",
+    "options": ["Infiniti", "Acura", "Lexus", "Genesis"],
+    "answer": "Lexus"
+  },
+  {
+    "theme": "Mode",
+    "difficulty": "facile",
+    "question": "Quel animal figure sur le logo de la marque Lacoste ?",
+    "options": ["Un lion", "Un cheval", "Un crocodile", "Un aigle"],
+    "answer": "Un crocodile"
+  },
+  {
+    "theme": "Mode",
+    "difficulty": "facile",
+    "question": "Quel accessoire porte-t-on traditionnellement sur les mains ?",
+    "options": ["Des chaussettes", "Une écharpe", "Des gants", "Un bonnet"],
+    "answer": "Des gants"
+  },
+  {
+    "theme": "Mode",
+    "difficulty": "facile",
+    "question": "Quelle marque de luxe est célèbre pour ses sacs orange et son logo avec une calèche ?",
+    "options": ["Louis Vuitton", "Hermès", "Chanel", "Gucci"],
+    "answer": "Hermès"
+  },
+  {
+    "theme": "Mode",
+    "difficulty": "moyen",
+    "question": "Quel créateur est mondialement connu pour ses chaussures à semelles rouges ?",
+    "options": ["Christian Dior", "Yves Saint Laurent", "Christian Louboutin", "Jean-Paul Gaultier"],
+    "answer": "Christian Louboutin"
+  },
+  {
+    "theme": "Mode",
+    "difficulty": "moyen",
+    "question": "Quel était le véritable prénom de Coco Chanel ?",
+    "options": ["Gabrielle", "Colette", "Marie", "Jeanne"],
+    "answer": "Gabrielle"
+  },
+  {
+    "theme": "Mode",
+    "difficulty": "moyen",
+    "question": "De quel tissu résistant est fait un jean classique ?",
+    "options": ["Le lin", "La soie", "Le denim", "Le velours"],
+    "answer": "Le denim"
+  },
+  {
+    "theme": "Mode",
+    "difficulty": "difficile",
+    "question": "En quelle année Christian Dior a-t-il révolutionné la mode avec le 'New Look' ?",
+    "options": ["1925", "1947", "1955", "1960"],
+    "answer": "1947"
+  },
+  {
+    "theme": "Mode",
+    "difficulty": "difficile",
+    "question": "Quel couturier allemand emblématique était le directeur artistique de Chanel jusqu'en 2019 ?",
+    "options": ["Karl Lagerfeld", "Gianni Versace", "Hubert de Givenchy", "Pierre Cardin"],
+    "answer": "Karl Lagerfeld"
+  },
+  {
+    "theme": "Mode",
+    "difficulty": "difficile",
+    "question": "Dans quelle ville italienne la maison Gucci a-t-elle été fondée ?",
+    "options": ["Rome", "Milan", "Florence", "Venise"],
+    "answer": "Florence"
+  },
+  {
+    "theme": "Inventions",
+    "difficulty": "facile",
+    "question": "Qui a inventé le téléphone ?",
+    "options": ["Thomas Edison", "Nikola Tesla", "Alexander Graham Bell", "Albert Einstein"],
+    "answer": "Alexander Graham Bell"
+  },
+  {
+    "theme": "Inventions",
+    "difficulty": "facile",
+    "question": "Quelle invention des frères Wright a révolutionné le transport ?",
+    "options": ["La voiture", "Le train", "L'avion", "Le bateau à vapeur"],
+    "answer": "L'avion"
+  },
+  {
+    "theme": "Inventions",
+    "difficulty": "facile",
+    "question": "Quel objet Thomas Edison a-t-il commercialisé pour éclairer les maisons ?",
+    "options": ["La bougie", "La lampe à huile", "L'ampoule électrique", "Le néon"],
+    "answer": "L'ampoule électrique"
+  },
+  {
+    "theme": "Inventions",
+    "difficulty": "moyen",
+    "question": "Qui a inventé l'imprimerie à caractères mobiles en Europe vers 1450 ?",
+    "options": ["Léonard de Vinci", "Johannes Gutenberg", "Copernic", "Galilée"],
+    "answer": "Johannes Gutenberg"
+  },
+  {
+    "theme": "Inventions",
+    "difficulty": "moyen",
+    "question": "Quel inventeur a donné son nom à un prix prestigieux après avoir inventé la dynamite ?",
+    "options": ["Alfred Nobel", "Marie Curie", "Louis Pasteur", "Isaac Newton"],
+    "answer": "Alfred Nobel"
+  },
+  {
+    "theme": "Inventions",
+    "difficulty": "moyen",
+    "question": "Qui est le principal inventeur du World Wide Web (le Web) ?",
+    "options": ["Steve Jobs", "Bill Gates", "Tim Berners-Lee", "Mark Zuckerberg"],
+    "answer": "Tim Berners-Lee"
+  },
+  {
+    "theme": "Inventions",
+    "difficulty": "difficile",
+    "question": "Qui a inventé la première pile électrique (pile voltaïque) ?",
+    "options": ["Alessandro Volta", "André-Marie Ampère", "James Watt", "Michael Faraday"],
+    "answer": "Alessandro Volta"
+  },
+  {
+    "theme": "Inventions",
+    "difficulty": "difficile",
+    "question": "En quelle année a eu lieu le premier vol motorisé contrôlé des frères Wright ?",
+    "options": ["1890", "1903", "1910", "1921"],
+    "answer": "1903"
+  },
+  {
+    "theme": "Inventions",
+    "difficulty": "difficile",
+    "question": "Quel système d'écriture tactile Louis Braille a-t-il inventé à l'âge de 15 ans ?",
+    "options": ["Le Morse", "Le Braille", "La Langue des Signes", "L'Esperanto"],
+    "answer": "Le Braille"
+  },
+  {
+    "theme": "Architecture",
+    "difficulty": "facile",
+    "question": "Quelle tour emblématique de Paris a été construite pour l'Exposition universelle de 1889 ?",
+    "options": ["L'Arc de Triomphe", "La Tour Eiffel", "La Tour Montparnasse", "Notre-Dame"],
+    "answer": "La Tour Eiffel"
+  },
+  {
+    "theme": "Architecture",
+    "difficulty": "facile",
+    "question": "De quoi sont faits les igloos ?",
+    "options": ["De bois", "De brique", "De blocs de neige", "De paille"],
+    "answer": "De blocs de neige"
+  },
+  {
+    "theme": "Architecture",
+    "difficulty": "facile",
+    "question": "Quel monument indien a été construit par amour par l'empereur Shah Jahan ?",
+    "options": ["Le Taj Mahal", "Le temple du Lotus", "Le fort Rouge", "Le Qutub Minar"],
+    "answer": "Le Taj Mahal"
+  },
+  {
+    "theme": "Architecture",
+    "difficulty": "moyen",
+    "question": "Quel style architectural est caractérisé par des arcs brisés et des vitraux colorés (ex: Notre-Dame) ?",
+    "options": ["Le style Roman", "Le style Gothique", "Le style Baroque", "Le style Rococo"],
+    "answer": "Le style Gothique"
+  },
+  {
+    "theme": "Architecture",
+    "difficulty": "moyen",
+    "question": "Quel architecte suisse-français est un pionnier de l'architecture moderne ?",
+    "options": ["Le Corbusier", "Jean Nouvel", "Frank Gehry", "Renzo Piano"],
+    "answer": "Le Corbusier"
+  },
+  {
+    "theme": "Architecture",
+    "difficulty": "moyen",
+    "question": "Dans quelle ville se trouve le Colisée ?",
+    "options": ["Athènes", "Rome", "Naples", "Florence"],
+    "answer": "Rome"
+  },
+  {
+    "theme": "Architecture",
+    "difficulty": "difficile",
+    "question": "Quel architecte américain a conçu le musée Guggenheim de New York ?",
+    "options": ["Frank Lloyd Wright", "I.M. Pei", "Zaha Hadid", "Norman Foster"],
+    "answer": "Frank Lloyd Wright"
+  },
+  {
+    "theme": "Architecture",
+    "difficulty": "difficile",
+    "question": "Quel est le plus haut gratte-ciel du monde en 2024 ?",
+    "options": ["Shanghai Tower", "Burj Khalifa", "One World Trade Center", "Taipei 101"],
+    "answer": "Burj Khalifa"
+  },
+  {
+    "theme": "Architecture",
+    "difficulty": "difficile",
+    "question": "En architecture antique, comment s'appelle la partie supérieure d'une colonne ?",
+    "options": ["Le fût", "La base", "Le chapiteau", "L'architrave"],
+    "answer": "Le chapiteau"
+  },
+  {
+    "theme": "Économie",
+    "difficulty": "facile",
+    "question": "Quelle est la monnaie utilisée aux États-Unis ?",
+    "options": ["L'Euro", "Le Dollar", "La Livre", "Le Yen"],
+    "answer": "Le Dollar"
+  },
+  {
+    "theme": "Économie",
+    "difficulty": "facile",
+    "question": "Quel est le contraire de l'achat ?",
+    "options": ["Le don", "Le vol", "La vente", "Le prêt"],
+    "answer": "La vente"
+  },
+  {
+    "theme": "Économie",
+    "difficulty": "facile",
+    "question": "Comment appelle-t-on la somme d'argent qu'on reçoit en échange d'un travail ?",
+    "options": ["Une taxe", "Un salaire", "Une dette", "Un impôt"],
+    "answer": "Un salaire"
+  },
+  {
+    "theme": "Économie",
+    "difficulty": "moyen",
+    "question": "Quel sigle désigne le Produit Intérieur Brut d'un pays ?",
+    "options": ["PNB", "PIB", "TVA", "FMI"],
+    "answer": "PIB"
+  },
+  {
+    "theme": "Économie",
+    "difficulty": "moyen",
+    "question": "Quel est le nom de la bourse de New York ?",
+    "options": ["NASDAQ", "Wall Street", "CAC 40", "Dow Jones"],
+    "answer": "Wall Street"
+  },
+  {
+    "theme": "Économie",
+    "difficulty": "moyen",
+    "question": "Quel mécanisme économique désigne une augmentation générale des prix ?",
+    "options": ["La déflation", "L'inflation", "La récession", "La stagnation"],
+    "answer": "L'inflation"
+  },
+  {
+    "theme": "Économie",
+    "difficulty": "difficile",
+    "question": "Qui est l'auteur de l'ouvrage fondateur 'La Richesse des nations' (1776) ?",
+    "options": ["Karl Marx", "Adam Smith", "John Maynard Keynes", "David Ricardo"],
+    "answer": "Adam Smith"
+  },
+  {
+    "theme": "Économie",
+    "difficulty": "difficile",
+    "question": "Quelle cryptomonnaie a été créée par le mystérieux Satoshi Nakamoto ?",
+    "options": ["Ethereum", "Ripple", "Bitcoin", "Litecoin"],
+    "answer": "Bitcoin"
+  },
+  {
+    "theme": "Économie",
+    "difficulty": "difficile",
+    "question": "Que signifie l'acronyme GAFAM ?",
+    "options": ["Google Apple Facebook Amazon Microsoft", "Global Association For American Markets", "Google Amazon Facebook Apple McDonald's", "Groupement des Affaires Mondiales"],
+    "answer": "Google Apple Facebook Amazon Microsoft"
+  },
+  {
+    "theme": "Psychologie",
+    "difficulty": "facile",
+    "question": "Quel organe est le siège de la pensée et des émotions ?",
+    "options": ["Le cœur", "Le cerveau", "L'estomac", "Le foie"],
+    "answer": "Le cerveau"
+  },
+  {
+    "theme": "Psychologie",
+    "difficulty": "facile",
+    "question": "Comment appelle-t-on une peur irrationnelle et excessive ?",
+    "options": ["Une manie", "Une phobie", "Une allergie", "Une envie"],
+    "answer": "Une phobie"
+  },
+  {
+    "theme": "Psychologie",
+    "difficulty": "facile",
+    "question": "Quel sentiment ressent-on généralement quand on reçoit une bonne nouvelle ?",
+    "options": ["La tristesse", "La colère", "La joie", "La peur"],
+    "answer": "La joie"
+  },
+  {
+    "theme": "Psychologie",
+    "difficulty": "moyen",
+    "question": "Qui est considéré comme le père de la psychanalyse ?",
+    "options": ["Carl Jung", "Sigmund Freud", "Jean Piaget", "Ivan Pavlov"],
+    "answer": "Sigmund Freud"
+  },
+  {
+    "theme": "Psychologie",
+    "difficulty": "moyen",
+    "question": "Que mesure le test de Q.I. ?",
+    "options": ["La Qualité Intellectuelle", "Le Quotient Intellectuel", "La Quantité d'Idées", "Le Quota d'Intelligence"],
+    "answer": "Le Quotient Intellectuel"
+  },
+  {
+    "theme": "Psychologie",
+    "difficulty": "moyen",
+    "question": "Quel terme désigne la perte de mémoire ?",
+    "options": ["L'aphasie", "L'amnésie", "L'insomnie", "L'anorexie"],
+    "answer": "L'amnésie"
+  },
+  {
+    "theme": "Psychologie",
+    "difficulty": "difficile",
+    "question": "Quelle expérience célèbre a testé l'obéissance à l'autorité avec des chocs électriques fictifs ?",
+    "options": ["L'expérience de Stanford", "L'expérience de Milgram", "Le chien de Pavlov", "L'expérience d'Asch"],
+    "answer": "L'expérience de Milgram"
+  },
+  {
+    "theme": "Psychologie",
+    "difficulty": "difficile",
+    "question": "Comment appelle-t-on l'effet où un patient guérit grâce à un faux médicament ?",
+    "options": ["L'effet Nocebo", "L'effet Placebo", "L'effet Papillon", "L'effet Doppler"],
+    "answer": "L'effet Placebo"
+  },
+  {
+    "theme": "Psychologie",
+    "difficulty": "difficile",
+    "question": "Quel psychiatre suisse a développé le concept d'inconscient collectif ?",
+    "options": ["Carl Gustav Jung", "Jacques Lacan", "B.F. Skinner", "Alfred Adler"],
+    "answer": "Carl Gustav Jung"
+  },
+  {
+    "theme": "Philosophie",
+    "difficulty": "facile",
+    "question": "Quelle célèbre phrase est attribuée à Descartes ?",
+    "options": ["Être ou ne pas être", "Je pense, donc je suis", "Tout ce que je sais, c'est que je ne sais rien", "L'homme est un loup pour l'homme"],
+    "answer": "Je pense, donc je suis"
+  },
+  {
+    "theme": "Philosophie",
+    "difficulty": "facile",
+    "question": "Quel philosophe grec a été le maître d'Alexandre le Grand ?",
+    "options": ["Platon", "Socrate", "Aristote", "Épicure"],
+    "answer": "Aristote"
+  },
+  {
+    "theme": "Philosophie",
+    "difficulty": "facile",
+    "question": "Que recherchent les philosophes avant tout ?",
+    "options": ["L'argent", "La gloire", "La sagesse", "Le pouvoir"],
+    "answer": "La sagesse"
+  },
+  {
+    "theme": "Philosophie",
+    "difficulty": "moyen",
+    "question": "Qui a écrit 'La République' et l'allégorie de la caverne ?",
+    "options": ["Homère", "Platon", "Sénèque", "Pythagore"],
+    "answer": "Platon"
+  },
+  {
+    "theme": "Philosophie",
+    "difficulty": "moyen",
+    "question": "Quel philosophe des Lumières a dirigé l'Encyclopédie ?",
+    "options": ["Voltaire", "Rousseau", "Diderot", "Montesquieu"],
+    "answer": "Diderot"
+  },
+  {
+    "theme": "Philosophie",
+    "difficulty": "moyen",
+    "question": "Quel penseur allemand a écrit 'Ainsi parlait Zarathoustra' ?",
+    "options": ["Kant", "Hegel", "Nietzsche", "Marx"],
+    "answer": "Nietzsche"
+  },
+  {
+    "theme": "Philosophie",
+    "difficulty": "difficile",
+    "question": "Quel philosophe est associé au concept de 'L'Existentialisme' ?",
+    "options": ["Jean-Paul Sartre", "René Descartes", "Blaise Pascal", "Spinoza"],
+    "answer": "Jean-Paul Sartre"
+  },
+  {
+    "theme": "Philosophie",
+    "difficulty": "difficile",
+    "question": "Quelle œuvre majeure a été écrite par Emmanuel Kant ?",
+    "options": ["Le Léviathan", "Critique de la raison pure", "Le Prince", "L'Éthique"],
+    "answer": "Critique de la raison pure"
+  },
+  {
+    "theme": "Philosophie",
+    "difficulty": "difficile",
+    "question": "Quel concept chinois désigne les deux forces opposées et complémentaires ?",
+    "options": ["Le Tao", "Le Yin et le Yang", "Le Feng Shui", "Le Zen"],
+    "answer": "Le Yin et le Yang"
+  },
+  {
+    "theme": "Botanique",
+    "difficulty": "facile",
+    "question": "Quelle partie de la plante se trouve sous terre ?",
+    "options": ["La feuille", "La fleur", "La racine", "La tige"],
+    "answer": "La racine"
+  },
+  {
+    "theme": "Botanique",
+    "difficulty": "facile",
+    "question": "De quelle couleur sont généralement les feuilles des arbres en été ?",
+    "options": ["Bleu", "Vert", "Rouge", "Violet"],
+    "answer": "Vert"
+  },
+  {
+    "theme": "Botanique",
+    "difficulty": "facile",
+    "question": "Quel liquide sucré les abeilles récoltent-elles dans les fleurs ?",
+    "options": ["Le pollen", "La sève", "Le nectar", "La résine"],
+    "answer": "Le nectar"
+  },
+  {
+    "theme": "Botanique",
+    "difficulty": "moyen",
+    "question": "Quel arbre perd ses épines en hiver (contrairement aux autres conifères) ?",
+    "options": ["Le sapin", "Le pin", "Le mélèze", "L'épicéa"],
+    "answer": "Le mélèze"
+  },
+  {
+    "theme": "Botanique",
+    "difficulty": "moyen",
+    "question": "Comment appelle-t-on les arbres qui gardent leur feuillage toute l'année ?",
+    "options": ["Les caducs", "Les persistants", "Les annuels", "Les fruitiers"],
+    "answer": "Les persistants"
+  },
+  {
+    "theme": "Botanique",
+    "difficulty": "moyen",
+    "question": "Quelle plante carnivore est la plus célèbre ?",
+    "options": ["La Dionée (Attrape-mouche)", "L'Orchidée", "Le Cactus", "Le Bambou"],
+    "answer": "La Dionée (Attrape-mouche)"
+  },
+  {
+    "theme": "Botanique",
+    "difficulty": "difficile",
+    "question": "Quel est le nom scientifique de l'étude des arbres ?",
+    "options": ["L'arboriculture", "La dendrologie", "La sylviculture", "La pomologie"],
+    "answer": "La dendrologie"
+  },
+  {
+    "theme": "Botanique",
+    "difficulty": "difficile",
+    "question": "Quel arbre japonais est célèbre pour ses fleurs roses au printemps ?",
+    "options": ["Le Bonsaï", "Le Sakura (Cerisier)", "L'Érable", "Le Gingko"],
+    "answer": "Le Sakura (Cerisier)"
+  },
+  {
+    "theme": "Botanique",
+    "difficulty": "difficile",
+    "question": "Quelle est la plus grande fleur du monde (et qui sent très mauvais) ?",
+    "options": ["La Rafflesia arnoldii", "Le Nénuphar géant", "Le Tournesol", "La Rose"],
+    "answer": "La Rafflesia arnoldii"
+  },
+  {
+    "theme": "Dessins Animés",
+    "difficulty": "facile",
+    "question": "Quel chat poursuit inlassablement la souris Jerry ?",
+    "options": ["Grosminet", "Tom", "Garfield", "Félix"],
+    "answer": "Tom"
+  },
+  {
+    "theme": "Dessins Animés",
+    "difficulty": "facile",
+    "question": "Dans 'Scooby-Doo', quel est le nom du chien peureux ?",
+    "options": ["Samy", "Fred", "Scooby-Doo", "Daphné"],
+    "answer": "Scooby-Doo"
+  },
+  {
+    "theme": "Dessins Animés",
+    "difficulty": "facile",
+    "question": "Quelle éponge vit dans un ananas sous la mer ?",
+    "options": ["Patrick l'Étoile", "Carlo", "Bob l'Éponge", "Plankton"],
+    "answer": "Bob l'Éponge"
+  },
+  {
+    "theme": "Dessins Animés",
+    "difficulty": "moyen",
+    "question": "Dans 'Les Simpson', comment s'appelle le fils aîné ?",
+    "options": ["Homer", "Bart", "Lisa", "Maggie"],
+    "answer": "Bart"
+  },
+  {
+    "theme": "Dessins Animés",
+    "difficulty": "moyen",
+    "question": "Quel dessin animé met en scène des bébés appelés 'Les Razmoket' ?",
+    "options": ["Les Razmoket", "Hé Arnold", "Michat-Michien", "Les Castors allumés"],
+    "answer": "Les Razmoket"
+  },
+  {
+    "theme": "Dessins Animés",
+    "difficulty": "moyen",
+    "question": "Dans 'South Park', quel personnage meurt dans presque tous les premiers épisodes ?",
+    "options": ["Cartman", "Kyle", "Stan", "Kenny"],
+    "answer": "Kenny"
+  },
+  {
+    "theme": "Dessins Animés",
+    "difficulty": "difficile",
+    "question": "Quel est le nom du créateur des 'Simpson' ?",
+    "options": ["Seth MacFarlane", "Matt Groening", "Trey Parker", "Walt Disney"],
+    "answer": "Matt Groening"
+  },
+  {
+    "theme": "Dessins Animés",
+    "difficulty": "difficile",
+    "question": "Dans 'Pokémon', quel est le nom complet de Sacha ?",
+    "options": ["Sacha Ketchum", "Sacha du Bourg-Palette", "Sacha Chen", "Sacha Pierre"],
+    "answer": "Sacha Ketchum"
+  },
+  {
+    "theme": "Dessins Animés",
+    "difficulty": "difficile",
+    "question": "Quel est le nom du studio japonais fondé par Hayao Miyazaki ?",
+    "options": ["Toei Animation", "Studio Ghibli", "Pixar", "Madhouse"],
+    "answer": "Studio Ghibli"
+  },
+  {
+    "theme": "Météorologie",
+    "difficulty": "facile",
+    "question": "Quel instrument sert à mesurer la température ?",
+    "options": ["Le baromètre", "L'anémomètre", "Le thermomètre", "Le pluviomètre"],
+    "answer": "Le thermomètre"
+  },
+  {
+    "theme": "Météorologie",
+    "difficulty": "facile",
+    "question": "Quel phénomène lumineux apparaît après la pluie avec le soleil ?",
+    "options": ["L'éclair", "L'arc-en-ciel", "L'aurore boréale", "Le brouillard"],
+    "answer": "L'arc-en-ciel"
+  },
+  {
+    "theme": "Météorologie",
+    "difficulty": "facile",
+    "question": "En hiver, sous quelle forme tombe l'eau s'il fait très froid ?",
+    "options": ["De la pluie", "De la neige", "De la vapeur", "De la rosée"],
+    "answer": "De la neige"
+  },
+  {
+    "theme": "Météorologie",
+    "difficulty": "moyen",
+    "question": "Que mesure un anémomètre ?",
+    "options": ["La pression atmosphérique", "L'humidité", "La vitesse du vent", "La quantité de pluie"],
+    "answer": "La vitesse du vent"
+  },
+  {
+    "theme": "Météorologie",
+    "difficulty": "moyen",
+    "question": "Comment appelle-t-on l'étude du climat et des prévisions du temps ?",
+    "options": ["L'astrologie", "La météorologie", "La géologie", "La sismologie"],
+    "answer": "La météorologie"
+  },
+  {
+    "theme": "Météorologie",
+    "difficulty": "moyen",
+    "question": "Quel nuage est souvent comparé à du brouillard qui ne touche pas le sol ?",
+    "options": ["Le stratus", "Le cumulus", "Le cirrus", "Le nimbus"],
+    "answer": "Le stratus"
+  },
+  {
+    "theme": "Météorologie",
+    "difficulty": "difficile",
+    "question": "Quelle unité est utilisée pour mesurer la pression atmosphérique ?",
+    "options": ["Le Pascal ou l'Hectopascal", "Le degré Celsius", "Le kilomètre/heure", "Le millimètre"],
+    "answer": "Le Pascal ou l'Hectopascal"
+  },
+  {
+    "theme": "Météorologie",
+    "difficulty": "difficile",
+    "question": "Quel phénomène est désigné par 'El Niño' ?",
+    "options": ["Un courant marin chaud du Pacifique", "Une tornade géante", "Une tempête de sable", "Une éruption volcanique"],
+    "answer": "Un courant marin chaud du Pacifique"
+  },
+  {
+    "theme": "Météorologie",
+    "difficulty": "difficile",
+    "question": "Comment appelle-t-on la ligne reliant les points d'égale pression sur une carte ?",
+    "options": ["L'isotherme", "L'isobare", "L'équateur", "Le méridien"],
+    "answer": "L'isobare"
+  },
+  {
+    "theme": "Jeux de Société",
+    "difficulty": "facile",
+    "question": "Dans quel jeu doit-on acheter des rues et construire des hôtels ?",
+    "options": ["Le Cluedo", "Le Monopoly", "Le Scrabble", "Le Uno"],
+    "answer": "Le Monopoly"
+  },
+  {
+    "theme": "Jeux de Société",
+    "difficulty": "facile",
+    "question": "Quelle pièce du jeu d'échecs se déplace en diagonale ?",
+    "options": ["La tour", "Le fou", "Le cavalier", "Le pion"],
+    "answer": "Le fou"
+  },
+  {
+    "theme": "Jeux de Société",
+    "difficulty": "facile",
+    "question": "Dans quel jeu doit-on crier le nom du jeu quand il ne reste qu'une carte ?",
+    "options": ["Bataille", "Uno", "Poker", "Belote"],
+    "answer": "Uno"
+  },
+  {
+    "theme": "Jeux de Société",
+    "difficulty": "moyen",
+    "question": "Dans le Cluedo, quel personnage est représenté par la couleur rouge ?",
+    "options": ["Colonel Moutarde", "Mademoiselle Rose", "Madame Pervenche", "Docteur Olive"],
+    "answer": "Mademoiselle Rose"
+  },
+  {
+    "theme": "Jeux de Société",
+    "difficulty": "moyen",
+    "question": "Combien de cases compte un échiquier classique ?",
+    "options": ["50", "64", "100", "32"],
+    "answer": "64"
+  },
+  {
+    "theme": "Jeux de Société",
+    "difficulty": "moyen",
+    "question": "Quel jeu de lettres consiste à former des mots sur une grille pour marquer des points ?",
+    "options": ["Le Trivial Pursuit", "Le Pictionary", "Le Scrabble", "Le Boggle"],
+    "answer": "Le Scrabble"
+  },
+  {
+    "theme": "Jeux de Société",
+    "difficulty": "difficile",
+    "question": "De quel pays est originaire le jeu de Go ?",
+    "options": ["Japon", "Chine", "Corée", "Inde"],
+    "answer": "Chine"
+  },
+  {
+    "theme": "Jeux de Société",
+    "difficulty": "difficile",
+    "question": "Quel est le score maximum possible avec trois fléchettes aux fléchettes (501) ?",
+    "options": ["150", "180", "100", "60"],
+    "answer": "180"
+  },
+  {
+    "theme": "Jeux de Société",
+    "difficulty": "difficile",
+    "question": "Dans 'Les Loups-Garous de Thiercelieux', quel personnage peut regarder une carte adverse la nuit ?",
+    "options": ["La sorcière", "La petite fille", "Le chasseur", "Cupidon"],
+    "answer": "La petite fille"
+  },
+  {
+    "theme": "Drapeaux",
+    "difficulty": "facile",
+    "question": "De quelles couleurs est le drapeau de la France ?",
+    "options": ["Bleu Blanc Rouge", "Vert Blanc Rouge", "Noir Jaune Rouge", "Rouge Blanc Bleu"],
+    "answer": "Bleu Blanc Rouge"
+  },
+  {
+    "theme": "Drapeaux",
+    "difficulty": "facile",
+    "question": "Quel pays a un drapeau avec une feuille d'érable rouge au centre ?",
+    "options": ["Les USA", "Le Canada", "Le Japon", "L'Australie"],
+    "answer": "Le Canada"
+  },
+  {
+    "theme": "Drapeaux",
+    "difficulty": "facile",
+    "question": "Quel pays a un drapeau avec un grand cercle rouge sur fond blanc ?",
+    "options": ["La Chine", "La Corée", "Le Japon", "Le Vietnam"],
+    "answer": "Le Japon"
+  },
+  {
+    "theme": "Drapeaux",
+    "difficulty": "moyen",
+    "question": "Quel pays a un drapeau jaune et bleu ?",
+    "options": ["Pologne", "Suède", "Danemark", "Finlande"],
+    "answer": "Suède"
+  },
+  {
+    "theme": "Drapeaux",
+    "difficulty": "moyen",
+    "question": "Quel est le seul pays au monde à avoir un drapeau qui n'est pas rectangulaire (ni carré) ?",
+    "options": ["La Suisse", "Le Népal", "Le Vatican", "Monaco"],
+    "answer": "Le Népal"
+  },
+  {
+    "theme": "Drapeaux",
+    "difficulty": "moyen",
+    "question": "Combien d'étoiles figurent sur le drapeau actuel des États-Unis ?",
+    "options": ["48", "50", "51", "52"],
+    "answer": "50"
+  },
+  {
+    "theme": "Drapeaux",
+    "difficulty": "difficile",
+    "question": "Quels sont les deux seuls pays à avoir un drapeau carré ?",
+    "options": ["Suisse et Vatican", "Suisse et Belgique", "Vatican et Monaco", "Népal et Suisse"],
+    "answer": "Suisse et Vatican"
+  },
+  {
+    "theme": "Drapeaux",
+    "difficulty": "difficile",
+    "question": "Quel pays a un drapeau vert avec un losange jaune et un cercle bleu ?",
+    "options": ["Argentine", "Brésil", "Colombie", "Portugal"],
+    "answer": "Brésil"
+  },
+  {
+    "theme": "Drapeaux",
+    "difficulty": "difficile",
+    "question": "Quel symbole figure sur le drapeau de l'Arabie Saoudite ?",
+    "options": ["Un aigle", "Une épée", "Un croissant de lune", "Une étoile"],
+    "answer": "Une épée"
+  }
+]
+        // --- FIN DU COLLAGE ---
+        ;
+
+
+        /* =========================================================
+           LOGIQUE DU JEU
+           ========================================================= */
+        let players = [];
+        let currentPlayerIndex = 0;
+        let currentDifficultyIndex = 0; // 0 = Premier niveau du tableau 'levels'
+        let currentQuestionObj = null;
+
+        // CONFIGURATION DES NIVEAUX (Ordre : Difficile -> Moyen -> Facile)
+        const levels = [
+            { name: "difficile", color: "#e74c3c", label: "DIFFICILE", img: "images/logo_difficile.png" }, // Index 0 (Rouge)
+            { name: "moyen", color: "#f1c40f", label: "MOYEN", img: "images/logo_moyen.png" },             // Index 1 (Jaune)
+            { name: "facile", color: "#2ecc71", label: "FACILE", img: "images/logo_facile.png" }             // Index 2 (Vert)
+        ];
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function goToSetup() { showScreen('setup-screen'); }
+
+        function addPlayer() {
+            const input = document.getElementById('player-input');
+            const name = input.value.trim();
+            if (name) {
+                players.push(name);
+                const li = document.createElement('li');
+                li.textContent = name;
+                document.getElementById('player-list').appendChild(li);
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        function startGame() {
+            if (players.length === 0) { alert("Il faut au moins un joueur !"); return; }
+            currentPlayerIndex = 0;
+            currentDifficultyIndex = 0; // On commence à l'index 0 (Difficile)
+            updateGameVisuals();
+            loadNewCard();
+            showScreen('game-screen');
+        }
+
+        function updateGameVisuals() {
+            const level = levels[currentDifficultyIndex];
+            
+            // Mise à jour de la couleur globale
+            document.documentElement.style.setProperty('--theme-color', level.color);
+            
+            // Textes
+            document.getElementById('current-player-display').textContent = "C'est à " + players[currentPlayerIndex] + " de jouer";
+            document.getElementById('difficulty-display').textContent = level.label;
+
+            // Image
+            const imgElement = document.getElementById('difficulty-img');
+            imgElement.src = level.img; 
+            imgElement.onerror = function() { 
+                // Placeholder si l'image n'existe pas
+                this.src = `https://placehold.co/100x100/${level.color.substring(1)}/FFF?text=${level.name.charAt(0).toUpperCase()}`; 
+            };
+        }
+
+        function loadNewCard() {
+            // Réinitialisation de l'affichage (tout caché sauf bouton Thème)
+            document.getElementById('content-theme').style.display = 'none';
+            document.getElementById('content-question').style.display = 'none';
+            document.getElementById('content-options').style.display = 'none';
+            document.getElementById('btn-theme').style.display = 'block';
+            document.getElementById('btn-question').style.display = 'none';
+            document.getElementById('btn-options').style.display = 'none';
+            document.getElementById('answer-display').style.display = 'none';
+
+            // Filtrer les questions selon la difficulté actuelle
+            const targetDiff = levels[currentDifficultyIndex].name;
+            const potentialQuestions = allQuestions.filter(q => q.difficulty === targetDiff);
+            
+            if(potentialQuestions.length === 0) {
+                currentQuestionObj = { theme: "Info", question: "Plus de questions pour ce niveau !", options:[], answer:"" };
+            } else {
+                const randIndex = Math.floor(Math.random() * potentialQuestions.length);
+                currentQuestionObj = potentialQuestions[randIndex];
+            }
+
+            // Remplissage du HTML
+            document.getElementById('text-theme').textContent = currentQuestionObj.theme;
+            document.getElementById('text-question').textContent = currentQuestionObj.question;
+            document.getElementById('answer-display').textContent = currentQuestionObj.answer;
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            currentQuestionObj.options.forEach(opt => {
+                const div = document.createElement('div');
+                div.className = 'option-item';
+                div.textContent = opt;
+                container.appendChild(div);
+            });
+        }
+
+        function reveal(step) {
+            if(step === 'theme') {
+                document.getElementById('btn-theme').style.display = 'none';
+                document.getElementById('content-theme').style.display = 'block';
+                document.getElementById('btn-question').style.display = 'block';
+            }
+            if(step === 'question') {
+                document.getElementById('btn-question').style.display = 'none';
+                document.getElementById('content-question').style.display = 'block';
+                document.getElementById('btn-options').style.display = 'block';
+            }
+            if(step === 'options') {
+                document.getElementById('btn-options').style.display = 'none';
+                document.getElementById('content-options').style.display = 'block';
+            }
+        }
+
+        function showAnswer() { document.getElementById('answer-display').style.display = 'block'; }
+
+        function handleTurn(success) {
+            if (success) {
+                // GAGNÉ : On passe au niveau "plus facile" (suivant dans le tableau)
+                if (currentDifficultyIndex < levels.length - 1) {
+                    currentDifficultyIndex++;
+                } else {
+                    // C'était le dernier niveau (Facile) -> Grand Chelem !
+                    alert("Bravo ! Niveau Facile validé. On garde la main et on recommence en Difficile !");
+                    currentDifficultyIndex = 0; // Retour à Difficile, même joueur
+                }
+            } else {
+                // PERDU : On reset à Difficile (0) et on change de joueur
+                currentDifficultyIndex = 0;
+                currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+            }
+            updateGameVisuals();
+            loadNewCard();
+        }
+    </script>
+</body>
+</html>
