@@ -40,7 +40,13 @@
         padding: 15px;
         box-sizing: border-box;
         overflow-x: hidden;
-        overflow-y: hidden; /* Empêche le scroll global si le mini-jeu est ouvert */
+        /* CORRECTION : On autorise le scroll vertical par défaut */
+        overflow-y: auto; 
+    }
+
+    /* CORRECTION : Classe utilitaire pour bloquer le scroll QUAND le mini-jeu est ouvert */
+    body.lock-scroll {
+        overflow: hidden;
     }
 
     body::before {
@@ -76,6 +82,7 @@
         box-sizing: border-box;
         position: relative;
         z-index: 1;
+        margin-bottom: 20px; /* Marge pour permettre le scroll si l'écran est petit */
     }
 
     .active {
@@ -208,7 +215,6 @@
         transition: transform 0.2s, filter 0.2s;
     }
     
-    /* Animation spéciale pour l'image cliquable du mini-jeu */
     .difficulty-img.clickable {
         cursor: pointer;
         animation: pulse-border 2s infinite;
@@ -440,7 +446,8 @@
         /* =========================================================
            DATA QUESTIONS
            ========================================================= */
-        const allQuestions = [
+        const allQuestions = 
+        [
   {
     "theme": "Astronomie",
     "difficulty": "facile",
@@ -2772,6 +2779,9 @@
 
         function openMiniGame() {
             isMiniGameOpen = true;
+            // CORRECTION: Bloquer le scroll du fond uniquement maintenant
+            document.body.classList.add('lock-scroll');
+            
             mgUi.layer.style.display = 'flex';
             
             // Init Canvas
@@ -2796,6 +2806,9 @@
 
         function closeMiniGame() {
             isMiniGameOpen = false;
+            // CORRECTION: Réactiver le scroll du fond
+            document.body.classList.remove('lock-scroll');
+            
             mgUi.layer.style.display = 'none';
             cancelAnimationFrame(mgAnimId); // Stopper la boucle
         }
