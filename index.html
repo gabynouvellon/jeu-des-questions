@@ -2,28 +2,24 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Le jeu des questions</title>
     <style>
     /* =========================================
        1. VARIABLES ET DESIGN NÉON
        ========================================= */
     :root {
-        /* Couleurs de fond sombres */
         --bg-color: #050505;
-        --card-bg: #000000; /* La carte est noire */
+        --card-bg: #000000;
         --text-color: #ffffff;
         --text-secondary: #cccccc;
 
-        /* Palette Néon Vibrante */
         --neon-red: #ff073a;
         --neon-yellow: #ffd700;
         --neon-green: #39ff14;
 
-        /* Couleur active par défaut (sera changée par le JS) */
         --theme-color: var(--neon-red);
 
-        /* Effets de lueur standardisés */
         --glow-box-soft: 0 0 15px var(--theme-color), inset 0 0 15px var(--theme-color);
         --glow-box-strong: 0 0 25px var(--theme-color), 0 0 50px var(--theme-color);
         --glow-text: 0 0 5px var(--theme-color), 0 0 15px var(--theme-color);
@@ -31,31 +27,44 @@
 
     body {
         font-family: 'Segoe UI', 'Roboto', sans-serif;
-        /* UTILISE TON IMAGE NÉON ICI. Assure-toi du nom du fichier. */
-        background-image: url("images/fond_neon.png");
-        background-color: var(--bg-color); /* Fallback si l'image ne charge pas */
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
+        background-color: var(--bg-color);
         color: var(--text-color);
         margin: 0;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        /* Utilisation de dvh pour mobile (Dynamic Viewport Height) */
         min-height: 100vh;
+        min-height: 100dvh; 
         text-align: center;
-        padding: 20px;
+        padding: 15px;
         box-sizing: border-box;
-        /* On assombrit légèrement le fond pour faire ressortir les néons */
-        box-shadow: inset 0 0 200px rgba(0,0,0,0.8);
+        overflow-x: hidden;
     }
 
-    /* Styles généraux pour les textes */
+    /* FIX BACKGROUND MOBILE 
+       Utilisation d'un pseudo-élément fixe pour éviter les sauts 
+       de l'image de fond lors du scroll sur mobile (barre d'adresse)
+    */
+    body::before {
+        content: "";
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-image: url("images/fond_neon.png");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        z-index: -1;
+        /* Assombrissement global pour lisibilité */
+        box-shadow: inset 0 0 200px rgba(0,0,0,0.8); 
+    }
+
     h1, h2 {
         text-transform: uppercase;
         letter-spacing: 2px;
         text-shadow: var(--glow-text);
+        margin-top: 0;
     }
 
     /* --- Classes utilitaires pour les écrans --- */
@@ -65,35 +74,38 @@
         max-width: 600px;
         padding: 25px;
         border-radius: 20px;
-        /* Fond semi-transparent noir pour les écrans de menu */
-        background: rgba(0, 0, 0, 0.7);
+        background: rgba(0, 0, 0, 0.75);
         border: 2px solid var(--theme-color);
         box-shadow: var(--glow-box-soft);
-        backdrop-filter: blur(5px);
+        backdrop-filter: blur(10px);
+        box-sizing: border-box;
     }
+
     .active {
         display: flex;
         flex-direction: column;
         align-items: center;
-        animation: flickerIn 0.8s ease-out;
+        animation: flickerIn 0.6s ease-out;
     }
-    /* Animation d'apparition type "allumage de néon" */
+
     @keyframes flickerIn {
-        0% { opacity: 0; }
-        10%, 30%, 50% { opacity: 0.5; }
-        20%, 40%, 60% { opacity: 0.8; }
-        100% { opacity: 1; }
+        0% { opacity: 0; transform: scale(0.95); }
+        100% { opacity: 1; transform: scale(1); }
     }
 
     /* --- ÉCRAN 1 : ACCUEIL --- */
-    #splash-screen { background: transparent; border: none; box-shadow: none; }
+    #splash-screen { background: transparent; border: none; box-shadow: none; backdrop-filter: none;}
     #splash-screen img {
         width: 100%; max-width: 350px; height: auto; border-radius: 30px;
-        /* Lueur autour du logo */
         box-shadow: var(--glow-box-strong);
-        margin-bottom: 30px; cursor: pointer; transition: transform 0.3s;
+        margin-bottom: 30px; 
+        cursor: pointer; 
+        transition: transform 0.2s;
+        /* Empêcher la sélection d'image sur mobile */
+        -webkit-user-select: none; user-select: none;
+        -webkit-touch-callout: none;
     }
-    #splash-screen img:hover { transform: scale(1.05); }
+    
     .click-text {
         font-size: 1.3rem; font-weight: 300; letter-spacing: 4px;
         text-transform: uppercase;
@@ -101,134 +113,140 @@
         text-shadow: var(--glow-text);
         animation: pulseNeon 1.5s infinite alternate;
     }
-    @keyframes pulseNeon { from { opacity: 0.7; text-shadow: 0 0 5px var(--theme-color); } to { opacity: 1; text-shadow: 0 0 20px var(--theme-color), 0 0 30px var(--theme-color); } }
+    @keyframes pulseNeon { from { opacity: 0.7; text-shadow: 0 0 5px var(--theme-color); } to { opacity: 1; text-shadow: 0 0 20px var(--theme-color); } }
 
-    /* --- ÉCRAN 2 : SETUP & INPUTS NÉON --- */
-    .input-group { margin: 20px 0; width: 100%; display: flex; gap: 10px; }
+    /* --- ÉCRAN 2 : SETUP & INPUTS --- */
+    .input-group { margin: 20px 0; width: 100%; display: flex; gap: 10px; flex-wrap: wrap; }
+    
     input[type="text"] {
         padding: 15px; flex-grow: 1; border-radius: 15px; font-size: 1rem; outline: none;
-        background: #111;
-        border: 2px solid #333;
-        color: white;
-        transition: all 0.3s;
+        background: #111; border: 2px solid #333; color: white;
+        transition: border-color 0.3s;
+        min-width: 0; /* Fix flex overflow */
     }
     input[type="text"]:focus {
         border-color: var(--theme-color);
         box-shadow: 0 0 10px var(--theme-color);
     }
+    ul#player-list { list-style: none; padding: 0; width: 100%; }
     ul#player-list li {
-        background: rgba(255,255,255,0.05);
+        background: rgba(255,255,255,0.08);
         margin: 8px 0; padding: 12px; border-radius: 10px;
         border-left: 3px solid var(--theme-color);
         text-align: left;
+        font-size: 1.1rem;
     }
 
-    /* --- ÉCRAN 3 : JEU --- */
-    .top-info { margin-bottom: 25px; width: 100%; }
-    .current-player {
-        font-size: 1.5rem; font-weight: 700; margin-bottom: 10px;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    }
-
-    .difficulty-badge {
-        display: inline-block; padding: 10px 30px; border-radius: 50px;
-        /* Style Néon pour le badge */
-        background-color: transparent;
-        border: 2px solid var(--theme-color);
-        color: var(--theme-color);
-        text-shadow: var(--glow-text);
-        box-shadow: inset 0 0 10px var(--theme-color);
-        text-transform: uppercase; font-size: 1rem; font-weight: bold;
-        transition: all 0.5s ease;
-    }
-
-    /* === CARTE CENTRALE (LE CŒUR DU NÉON) === */
-    .card-area {
-        background: var(--card-bg); /* NOIR */
-        color: var(--text-color);
-        width: 100%;
-        border-radius: 30px;
-        padding: 30px;
-        display: flex; flex-direction: column; gap: 20px;
-        /* Bordure et lueur néon intense */
-        border: 3px solid var(--theme-color);
-        box-shadow: var(--glow-box-soft), 0 0 30px rgba(0,0,0,0.8);
-        position: relative;
-        transition: all 0.5s ease;
-        overflow: hidden;
-        box-sizing: border-box;
-    }
-
-    .difficulty-img {
-        width: 150px; height: 150px; object-fit: contain;
-        margin: 0 auto 15px auto; display: block;
-    }
-
-    /* === BOUTONS NÉON (Révélation & Contrôles) === */
+    /* --- BOUTONS GÉNÉRAUX --- */
     .reveal-btn, .btn-control, .add-btn {
-        /* Fond transparent pour l'effet néon */
         background-color: black;
         color: var(--theme-color);
         border: 2px solid var(--theme-color);
-        padding: 15px 20px;
+        padding: 16px 20px; /* Plus grand pour le tactile */
         border-radius: 15px;
         cursor: pointer;
         font-size: 1.1rem; font-weight: 700;
         width: 100%;
         text-transform: uppercase;
         letter-spacing: 1px;
-        transition: all 0.3s ease;
-        /* Lueur interne et texte brillant */
+        transition: all 0.2s ease;
         box-shadow: inset 0 0 10px var(--theme-color);
         text-shadow: 0 0 5px var(--theme-color);
+        /* Pas de sélection de texte */
+        user-select: none; -webkit-user-select: none;
+        touch-action: manipulation;
     }
 
-    .reveal-btn:hover, .btn-control:hover, .add-btn:hover {
-        /* Au survol, le bouton se remplit */
-        background-color: var(--theme-color);
-        color: black;
-        text-shadow: none;
-        box-shadow: 0 0 20px var(--theme-color);
-        transform: translateY(-2px);
+    /* GESTION DU HOVER VS TOUCH */
+    /* Le hover ne s'applique que sur les appareils qui ont une souris */
+    @media (hover: hover) {
+        #splash-screen img:hover { transform: scale(1.05); }
+        .reveal-btn:hover, .btn-control:hover, .add-btn:hover {
+            background-color: var(--theme-color);
+            color: black;
+            text-shadow: none;
+            box-shadow: 0 0 20px var(--theme-color);
+            transform: translateY(-2px);
+        }
+        .option-item:hover { border-color: var(--theme-color); color: white; cursor: pointer; }
     }
 
-    /* Boutons spécifiques */
-    .add-btn { --theme-color: var(--neon-green); }
+    /* Effet d'appui (Active) pour mobile et desktop */
+    .reveal-btn:active, .btn-control:active, .add-btn:active, #splash-screen img:active {
+        transform: scale(0.96);
+        background-color: rgba(255,255,255,0.1);
+    }
+
+    .add-btn { --theme-color: var(--neon-green); flex-basis: 100px; }
     .btn-fail { --theme-color: var(--text-secondary); }
     .btn-success { --theme-color: var(--neon-green); }
 
+    /* --- ÉCRAN JEU --- */
+    .top-info { margin-bottom: 20px; width: 100%; display: flex; flex-direction: column; gap: 10px;}
+    .current-player {
+        font-size: 1.4rem; font-weight: 700;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    }
 
-    /* CONTENU CACHÉ (TEXTES DE QUESTIONS) */
+    .difficulty-badge {
+        align-self: center;
+        padding: 8px 25px; border-radius: 50px;
+        border: 2px solid var(--theme-color);
+        color: var(--theme-color);
+        text-shadow: var(--glow-text);
+        box-shadow: inset 0 0 10px var(--theme-color);
+        text-transform: uppercase; font-size: 0.9rem; font-weight: bold;
+    }
+
+    .card-area {
+        background: var(--card-bg);
+        color: var(--text-color);
+        width: 100%;
+        border-radius: 25px;
+        padding: 25px 20px; /* Moins de padding sur les côtés pour mobile */
+        display: flex; flex-direction: column; gap: 15px;
+        border: 3px solid var(--theme-color);
+        box-shadow: var(--glow-box-soft), 0 0 30px rgba(0,0,0,0.8);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .difficulty-img {
+        width: 120px; height: 120px; object-fit: contain;
+        margin: 0 auto 10px auto; display: block;
+    }
+
     .hidden-content {
         display: none;
-        padding: 20px;
-        background: #111; /* Fond très sombre pour le contenu */
+        padding: 15px;
+        background: #111;
         border-radius: 15px;
         text-align: center;
         border: 1px solid #333;
+        animation: fadeIn 0.3s ease;
     }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(-5px); } to { opacity:1; transform: translateY(0); } }
 
-    #text-question { font-size: 1.3rem; font-weight: 600; color: white; }
-    #text-theme { font-size: 1.2rem; color: var(--theme-color); text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 5px var(--theme-color); }
+    #text-question { font-size: 1.2rem; font-weight: 600; color: white; line-height: 1.4; }
+    #text-theme { font-size: 1.3rem; color: var(--theme-color); text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 8px var(--theme-color); }
 
-    /* GRILLE DES CHOIX */
-    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
     .option-item {
         background: #1a1a1a;
-        padding: 15px;
+        padding: 15px 10px;
         border-radius: 12px;
-        font-size: 1rem;
+        font-size: 0.95rem;
         border: 2px solid #333;
         color: var(--text-secondary);
         display: flex; align-items: center; justify-content: center; font-weight: 500;
-        transition: border-color 0.3s;
+        transition: border-color 0.2s;
+        min-height: 50px; /* Hauteur min pour le tactile */
     }
-    .option-item:hover { border-color: var(--theme-color); color: white; }
 
     .correct-answer {
         color: var(--neon-green);
-        font-size: 1.2rem; font-weight: 800;
-        margin-top: 20px; padding: 15px;
+        font-size: 1.3rem; font-weight: 800;
+        margin-top: 15px; padding: 15px;
         border: 3px solid var(--neon-green);
         border-radius: 15px;
         display: none;
@@ -238,17 +256,80 @@
         animation: pulseNeon 1s infinite alternate;
     }
 
-    .game-controls { display: flex; gap: 15px; margin-top: 25px; width: 100%; }
+    .game-controls { display: flex; gap: 15px; margin-top: 20px; width: 100%; }
 
-    /* RESPONSIVE */
-    @media (max-width: 768px) {
-        .screen { max-width: 95%; padding: 15px; }
-        .card-area { padding: 20px; }
-        .current-player { font-size: 1.2rem; }
-        .reveal-btn { font-size: 1rem; padding: 12px; }
-        .options-grid { grid-template-columns: 1fr; }
+    /* 1. L'animation de sortie pour l'accueil (Zoom + Flou) */
+    .screen-exit {
+        animation: warpSpeedOut 0.5s ease-in forwards;
+        pointer-events: none; /* Empêche de recliquer pendant l'anim */
     }
-</style>
+
+    @keyframes warpSpeedOut {
+        0% { 
+            opacity: 1; 
+            transform: scale(1); 
+            filter: blur(0px);
+        }
+        100% { 
+            opacity: 0; 
+            transform: scale(1.5); /* Le logo nous fonce dessus */
+            filter: blur(10px);    /* Effet de vitesse */
+        }
+    }
+
+    /* 2. L'animation d'entrée pour le setup (Glissement vers le haut) */
+    .screen-enter-up {
+        animation: slideUpFade 0.6s ease-out forwards;
+    }
+
+    @keyframes slideUpFade {
+        0% { 
+            opacity: 0; 
+            transform: translateY(30px) scale(0.95); 
+        }
+        100% { 
+            opacity: 1; 
+            transform: translateY(0) scale(1); 
+        }
+    }
+
+    /* =========================================
+       RESPONSIVE MOBILE
+       ========================================= */
+    @media (max-width: 768px) {
+        .screen { max-width: 100%; padding: 20px 15px; border-width: 1px; }
+        
+        h1 { font-size: 1.8rem; }
+        h2 { font-size: 1.5rem !important; }
+
+        .top-info { margin-bottom: 15px; }
+        .card-area { padding: 20px 15px; border-width: 2px; }
+        
+        /* Les boutons doivent être faciles à taper */
+        .reveal-btn, .btn-control { font-size: 1rem; padding: 18px 10px; }
+        
+        /* Input et bouton ajouter sur 2 lignes pour avoir de la place */
+        .input-group { flex-direction: column; }
+        .add-btn { width: 100%; }
+
+        /* Grille des réponses en 1 colonne sur petit écran pour lisibilité */
+        .options-grid { grid-template-columns: 1fr; }
+        
+        /* Transition Screen : Texte plus petit */
+        #next-player-name { font-size: 2.2rem !important; }
+
+        /* Contrôles du jeu (Gagné/Raté) */
+        .game-controls { 
+            gap: 10px; 
+        }
+        
+        /* Sur très petits écrans (iPhone SE, etc.) on empile les boutons de fin */
+        @media (max-width: 380px) {
+            .game-controls { flex-direction: column; }
+            .btn-control { width: 100%; }
+        }
+    }
+    </style>
 </head>
 <body>
     
@@ -269,9 +350,9 @@
     </div>
 
     <div id="transition-screen" class="screen">
-        <h1 style="font-size: 2.5rem; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">CHANGEMENT DE JOUEUR</h1>
-        <p style="font-size: 1.5rem; margin-bottom: 30px;">C'est au tour de :</p>
-        <div id="next-player-name" style="font-size: 3rem; font-weight: bold; color: #f1c40f; margin-bottom: 40px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">...</div>
+        <h1 style="font-size: 2rem; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">CHANGEMENT DE JOUEUR</h1>
+        <p style="font-size: 1.2rem; margin-bottom: 20px;">C'est au tour de :</p>
+        <div id="next-player-name" style="font-size: 3rem; font-weight: bold; color: #f1c40f; margin-bottom: 30px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">...</div>
         
         <button class="reveal-btn" style="background-color: black;" onclick="startNextTurn()">C'EST PARTI !</button>
     </div>
@@ -301,7 +382,7 @@
             <div id="content-options" class="hidden-content">
                 <div id="options-container" class="options-grid"></div>
                 <div id="answer-display" class="correct-answer">...</div>
-                <div onclick="showAnswer()" style="margin-top:15px; font-size: 0.8rem; color:#bdc3c7; cursor:pointer; text-decoration: underline;">Révéler la réponse (Maître du jeu)</div>
+                <div onclick="showAnswer()" style="margin-top:15px; font-size: 0.9rem; padding: 10px; color:#bdc3c7; cursor:pointer; text-decoration: underline;">Révéler la réponse (Maître du jeu)</div>
             </div>
 
         </div>
@@ -314,11 +395,9 @@
 
     <script>
         /* =========================================================
-           ZONE DE DONNÉES - JSON COMPLET
+           ZONE DE DONNÉES
            ========================================================= */
-        
-        const allQuestions = 
-        [
+        const allQuestions = [
   {
     "theme": "Astronomie",
     "difficulty": "facile",
@@ -2400,16 +2479,14 @@
   }
 ];
 
-
         /* =========================================================
            LOGIQUE DU JEU
            ========================================================= */
         let players = [];
         let currentPlayerIndex = 0;
-        let currentDifficultyIndex = 0; // 0 = Premier niveau du tableau 'levels'
+        let currentDifficultyIndex = 0; 
         let currentQuestionObj = null;
 
-        // CONFIGURATION DES NIVEAUX (AVEC FONDS D'ÉCRAN)
         const levels = [
             { name: "difficile", color: "#e74c3c", label: "DIFFICILE", img: "images/logo_difficile.png", bg: "images/fond1.png" }, 
             { name: "moyen", color: "#f1c40f", label: "MOYEN", img: "images/logo_moyen.png", bg: "images/fond1.png" },             
@@ -2425,9 +2502,30 @@
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
+            window.scrollTo(0,0); // Remonter en haut de page lors du changement d'écran
         }
 
-        function goToSetup() { showScreen('setup-screen'); }
+        function goToSetup() { 
+        const splashScreen = document.getElementById('splash-screen');
+        const setupScreen = document.getElementById('setup-screen');
+
+        // 1. On lance l'animation de sortie sur l'écran actuel
+        splashScreen.classList.add('screen-exit');
+
+        // 2. On attend la fin de l'animation (500ms comme défini dans le CSS)
+        setTimeout(() => {
+            // On cache l'écran d'accueil "proprement" via ta fonction showScreen
+            showScreen('setup-screen');
+            
+            // On retire la classe de sortie pour si on revient plus tard (reset)
+            splashScreen.classList.remove('screen-exit');
+            
+            // 3. On ajoute une classe spécifique pour l'entrée du menu
+            // Note: showScreen ajoute déjà 'active', mais on veut surcharger l'animation
+            setupScreen.classList.add('screen-enter-up');
+            
+        }, 450); // Petit timing (450ms) pour que ça s'enchaîne parfaitement
+    }
 
         function addPlayer() {
             const input = document.getElementById('player-input');
@@ -2445,31 +2543,31 @@
         function startGame() {
             if (players.length === 0) { alert("Il faut au moins un joueur !"); return; }
             currentPlayerIndex = 0;
-            currentDifficultyIndex = 0; // On commence à l'index 0 (Difficile)
-            
+            currentDifficultyIndex = 0; 
             updateGameVisuals();
             loadNewCard();
             showScreen('game-screen');
         }
 
-        // Met à jour les couleurs, images et le fond d'écran
         function updateGameVisuals() {
             const level = levels[currentDifficultyIndex];
-            
-            // Mise à jour de la couleur globale
             document.documentElement.style.setProperty('--theme-color', level.color);
-
-            // Mise à jour du fond d'écran
+            
+            // Mise à jour de l'image de fond via le pseudo-élément (plus complexe en JS pur, donc on change le body background-image si le CSS fallback est utilisé, mais ici le CSS ::before gère le principal)
+            // Pour le JS, on peut cibler une variable CSS si on veut changer l'image dynamiquement dans le ::before, mais gardons simple :
+            // Si tu veux changer l'image de fond dynamiquement, le mieux est d'appliquer une classe au body ou changer le style inline du body qui serait répercuté.
+            // Pour ce code, je garde ton logique background sur body pour le fallback.
             document.body.style.backgroundImage = `url('${level.bg}')`;
 
+            // Hack pour mettre à jour le pseudo élément via une variable CSS si besoin, 
+            // mais ici on suppose que fond1.png est la même pour tous ou change selon level.bg
+            
             const cardcolor = cardcolors[currentDifficultyIndex];
             document.documentElement.style.setProperty('--card-bg', cardcolor.color);
             
-            // Textes
             document.getElementById('current-player-display').textContent = "C'est à " + players[currentPlayerIndex] + " de jouer";
             document.getElementById('difficulty-display').textContent = level.label;
 
-            // Image de difficulté
             const imgElement = document.getElementById('difficulty-img');
             imgElement.src = level.img; 
             imgElement.onerror = function() { 
@@ -2478,7 +2576,6 @@
         }
 
         function loadNewCard() {
-            // Réinitialisation de l'affichage (tout caché sauf bouton Thème)
             document.getElementById('content-theme').style.display = 'none';
             document.getElementById('content-question').style.display = 'none';
             document.getElementById('content-options').style.display = 'none';
@@ -2487,7 +2584,6 @@
             document.getElementById('btn-options').style.display = 'none';
             document.getElementById('answer-display').style.display = 'none';
 
-            // Filtrer les questions selon la difficulté actuelle
             const targetDiff = levels[currentDifficultyIndex].name;
             const potentialQuestions = allQuestions.filter(q => q.difficulty === targetDiff);
             
@@ -2498,7 +2594,6 @@
                 currentQuestionObj = potentialQuestions[randIndex];
             }
 
-            // Remplissage du HTML
             document.getElementById('text-theme').textContent = currentQuestionObj.theme;
             document.getElementById('text-question').textContent = currentQuestionObj.question;
             document.getElementById('answer-display').textContent = currentQuestionObj.answer;
@@ -2532,39 +2627,29 @@
 
         function showAnswer() { document.getElementById('answer-display').style.display = 'block'; }
 
-        // Nouvelle logique de gestion des tours
         function handleTurn(success) {
             if (success) {
-                // GAGNÉ : On passe au niveau "plus facile", même joueur
                 if (currentDifficultyIndex < levels.length - 1) {
                     currentDifficultyIndex++;
                 } else {
-                    // Dernier niveau (Facile) validé -> Grand Chelem !
                     alert("Bravo ! Niveau Facile validé. On garde la main et on recommence en Difficile !");
                     currentDifficultyIndex = 0; 
                 }
-                // Si gagné, on enchaîne direct
                 updateGameVisuals();
                 loadNewCard();
-
             } else {
-                // PERDU / PASSER : Changement de joueur
                 currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-                currentDifficultyIndex = 0; // Reset à Difficile
-
-                // Affichage de l'écran de transition
+                currentDifficultyIndex = 0; 
                 document.getElementById('next-player-name').textContent = players[currentPlayerIndex];
                 showScreen('transition-screen');
             }
         }
 
-        // Fonction appelée par le bouton de l'écran de transition
         function startNextTurn() {
             updateGameVisuals();
             loadNewCard();
             showScreen('game-screen');
         }
-
     </script>
 </body>
 </html>
