@@ -51,7 +51,7 @@
         content: "";
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
-        background-image: url("images/fond_neon.png");
+        background-image: url("images/fond_neon.jpg");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -334,7 +334,7 @@
 <body>
     
     <div id="splash-screen" class="screen active" onclick="goToSetup()">
-        <img src="images/accueil.png" alt="Logo Jeu" onerror="this.src='https://placehold.co/400x400/2c3e50/FFF?text=QUIZ+MASTER'">
+        <img src="images/accueil.jpg" alt="Logo Jeu" onerror="this.src='https://placehold.co/400x400/2c3e50/FFF?text=QUIZ+MASTER'">
         <div class="click-text">Touchez pour commencer</div>
     </div>
 
@@ -2488,9 +2488,9 @@
         let currentQuestionObj = null;
 
         const levels = [
-            { name: "difficile", color: "#e74c3c", label: "DIFFICILE", img: "images/logo_difficile.png", bg: "images/fond1.png" }, 
-            { name: "moyen", color: "#f1c40f", label: "MOYEN", img: "images/logo_moyen.png", bg: "images/fond1.png" },             
-            { name: "facile", color: "#2ecc71", label: "FACILE", img: "images/logo_facile.png", bg: "images/fond1.png" }             
+            { name: "difficile", color: "#e74c3c", label: "DIFFICILE", img: "images/logo_difficile.jpg", bg: "images/fond1.jpg" }, 
+            { name: "moyen", color: "#f1c40f", label: "MOYEN", img: "images/logo_moyen.jpg", bg: "images/fond1.jpg" },             
+            { name: "facile", color: "#2ecc71", label: "FACILE", img: "images/logo_facile.jpg", bg: "images/fond1.jpg" }             
         ];
 
         const cardcolors = [
@@ -2560,7 +2560,7 @@
             document.body.style.backgroundImage = `url('${level.bg}')`;
 
             // Hack pour mettre à jour le pseudo élément via une variable CSS si besoin, 
-            // mais ici on suppose que fond1.png est la même pour tous ou change selon level.bg
+            // mais ici on suppose que fond1.jpg est la même pour tous ou change selon level.bg
             
             const cardcolor = cardcolors[currentDifficultyIndex];
             document.documentElement.style.setProperty('--card-bg', cardcolor.color);
