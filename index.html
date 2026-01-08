@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Le jeu des questions</title>
+    <title>Le jeu des questions + Bonus</title>
     <style>
     /* =========================================
        1. VARIABLES ET DESIGN NÉON
@@ -34,19 +34,15 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        /* Utilisation de dvh pour mobile (Dynamic Viewport Height) */
         min-height: 100vh;
         min-height: 100dvh; 
         text-align: center;
         padding: 15px;
         box-sizing: border-box;
         overflow-x: hidden;
+        overflow-y: hidden; /* Empêche le scroll global si le mini-jeu est ouvert */
     }
 
-    /* FIX BACKGROUND MOBILE 
-       Utilisation d'un pseudo-élément fixe pour éviter les sauts 
-       de l'image de fond lors du scroll sur mobile (barre d'adresse)
-    */
     body::before {
         content: "";
         position: fixed;
@@ -56,7 +52,6 @@
         background-position: center;
         background-repeat: no-repeat;
         z-index: -1;
-        /* Assombrissement global pour lisibilité */
         box-shadow: inset 0 0 200px rgba(0,0,0,0.8); 
     }
 
@@ -79,6 +74,8 @@
         box-shadow: var(--glow-box-soft);
         backdrop-filter: blur(10px);
         box-sizing: border-box;
+        position: relative;
+        z-index: 1;
     }
 
     .active {
@@ -101,7 +98,6 @@
         margin-bottom: 30px; 
         cursor: pointer; 
         transition: transform 0.2s;
-        /* Empêcher la sélection d'image sur mobile */
         -webkit-user-select: none; user-select: none;
         -webkit-touch-callout: none;
     }
@@ -122,7 +118,7 @@
         padding: 15px; flex-grow: 1; border-radius: 15px; font-size: 1rem; outline: none;
         background: #111; border: 2px solid #333; color: white;
         transition: border-color 0.3s;
-        min-width: 0; /* Fix flex overflow */
+        min-width: 0; 
     }
     input[type="text"]:focus {
         border-color: var(--theme-color);
@@ -142,7 +138,7 @@
         background-color: black;
         color: var(--theme-color);
         border: 2px solid var(--theme-color);
-        padding: 16px 20px; /* Plus grand pour le tactile */
+        padding: 16px 20px;
         border-radius: 15px;
         cursor: pointer;
         font-size: 1.1rem; font-weight: 700;
@@ -152,13 +148,10 @@
         transition: all 0.2s ease;
         box-shadow: inset 0 0 10px var(--theme-color);
         text-shadow: 0 0 5px var(--theme-color);
-        /* Pas de sélection de texte */
         user-select: none; -webkit-user-select: none;
         touch-action: manipulation;
     }
 
-    /* GESTION DU HOVER VS TOUCH */
-    /* Le hover ne s'applique que sur les appareils qui ont une souris */
     @media (hover: hover) {
         #splash-screen img:hover { transform: scale(1.05); }
         .reveal-btn:hover, .btn-control:hover, .add-btn:hover {
@@ -168,10 +161,8 @@
             box-shadow: 0 0 20px var(--theme-color);
             transform: translateY(-2px);
         }
-        .option-item:hover { border-color: var(--theme-color); color: white; cursor: pointer; }
     }
 
-    /* Effet d'appui (Active) pour mobile et desktop */
     .reveal-btn:active, .btn-control:active, .add-btn:active, #splash-screen img:active {
         transform: scale(0.96);
         background-color: rgba(255,255,255,0.1);
@@ -203,7 +194,7 @@
         color: var(--text-color);
         width: 100%;
         border-radius: 25px;
-        padding: 25px 20px; /* Moins de padding sur les côtés pour mobile */
+        padding: 25px 20px;
         display: flex; flex-direction: column; gap: 15px;
         border: 3px solid var(--theme-color);
         box-shadow: var(--glow-box-soft), 0 0 30px rgba(0,0,0,0.8);
@@ -214,6 +205,17 @@
     .difficulty-img {
         width: 120px; height: 120px; object-fit: contain;
         margin: 0 auto 10px auto; display: block;
+        transition: transform 0.2s, filter 0.2s;
+    }
+    
+    /* Animation spéciale pour l'image cliquable du mini-jeu */
+    .difficulty-img.clickable {
+        cursor: pointer;
+        animation: pulse-border 2s infinite;
+    }
+    .difficulty-img.clickable:hover {
+        transform: scale(1.1);
+        filter: drop-shadow(0 0 15px var(--neon-green));
     }
 
     .hidden-content {
@@ -240,7 +242,7 @@
         color: var(--text-secondary);
         display: flex; align-items: center; justify-content: center; font-weight: 500;
         transition: border-color 0.2s;
-        min-height: 50px; /* Hauteur min pour le tactile */
+        min-height: 50px; 
     }
 
     .correct-answer {
@@ -258,72 +260,96 @@
 
     .game-controls { display: flex; gap: 15px; margin-top: 20px; width: 100%; }
 
-    /* 1. L'animation de sortie pour l'accueil (Zoom + Flou) */
-    .screen-exit {
-        animation: warpSpeedOut 0.5s ease-in forwards;
-        pointer-events: none; /* Empêche de recliquer pendant l'anim */
+    .screen-exit { animation: warpSpeedOut 0.5s ease-in forwards; pointer-events: none; }
+    @keyframes warpSpeedOut { 0% { opacity: 1; transform: scale(1); filter: blur(0px);} 100% { opacity: 0; transform: scale(1.5); filter: blur(10px); } }
+    .screen-enter-up { animation: slideUpFade 0.6s ease-out forwards; }
+    @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(30px) scale(0.95); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+
+    /* =========================================
+       STYLES DU MINI-JEU (OVERLAY)
+       ========================================= */
+    #minigame-layer {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: #000;
+        z-index: 9999;
+        display: none; /* Caché par défaut */
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
     }
 
-    @keyframes warpSpeedOut {
-        0% { 
-            opacity: 1; 
-            transform: scale(1); 
-            filter: blur(0px);
-        }
-        100% { 
-            opacity: 0; 
-            transform: scale(1.5); /* Le logo nous fonce dessus */
-            filter: blur(10px);    /* Effet de vitesse */
-        }
+    /* Le Canvas Flappy */
+    #flappyCanvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        max-width: 480px; /* Max largeur pour mobile */
+        border-left: 2px solid var(--neon-green);
+        border-right: 2px solid var(--neon-green);
     }
 
-    /* 2. L'animation d'entrée pour le setup (Glissement vers le haut) */
-    .screen-enter-up {
-        animation: slideUpFade 0.6s ease-out forwards;
+    /* Le Bouton FERMER (Croix) */
+    #close-minigame {
+        position: absolute;
+        top: 20px; right: 20px;
+        width: 50px; height: 50px;
+        background: rgba(0,0,0,0.8);
+        border: 2px solid var(--neon-red);
+        border-radius: 50%;
+        color: var(--neon-red);
+        font-size: 30px;
+        font-weight: bold;
+        display: flex; justify-content: center; align-items: center;
+        cursor: pointer;
+        z-index: 10001;
+        box-shadow: 0 0 15px var(--neon-red);
+        transition: transform 0.2s;
     }
+    #close-minigame:active { transform: scale(0.9); background: var(--neon-red); color: black;}
 
-    @keyframes slideUpFade {
-        0% { 
-            opacity: 0; 
-            transform: translateY(30px) scale(0.95); 
-        }
-        100% { 
-            opacity: 1; 
-            transform: translateY(0) scale(1); 
-        }
+    /* UI du Mini Jeu (Score, etc.) */
+    #mg-ui-layer {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        z-index: 10000;
     }
+    #mg-score-display {
+        position: absolute; top: 30px; left: 50%; transform: translateX(-50%);
+        background-color: rgba(0, 0, 0, 0.7);
+        border: 2px solid var(--neon-green); border-radius: 50px;
+        padding: 5px 40px; font-size: 40px; font-weight: 800;
+        color: white; text-shadow: 0 0 5px var(--neon-green), 0 0 15px var(--neon-green);
+        box-shadow: 0 0 15px rgba(57, 255, 20, 0.3);
+    }
+    .mg-screen {
+        background: rgba(0, 0, 0, 0.9); padding: 30px; border-radius: 15px;
+        border: 2px solid var(--neon-red);
+        box-shadow: 0 0 20px var(--neon-red);
+        pointer-events: auto; cursor: pointer; text-align: center;
+        min-width: 200px;
+    }
+    .mg-hidden { display: none !important; }
+    .mg-h1 { color: var(--neon-yellow); text-shadow: 0 0 10px var(--neon-yellow); font-size: 32px; margin: 0 0 15px 0;}
+
 
     /* =========================================
        RESPONSIVE MOBILE
        ========================================= */
     @media (max-width: 768px) {
         .screen { max-width: 100%; padding: 20px 15px; border-width: 1px; }
-        
         h1 { font-size: 1.8rem; }
         h2 { font-size: 1.5rem !important; }
-
         .top-info { margin-bottom: 15px; }
         .card-area { padding: 20px 15px; border-width: 2px; }
-        
-        /* Les boutons doivent être faciles à taper */
         .reveal-btn, .btn-control { font-size: 1rem; padding: 18px 10px; }
-        
-        /* Input et bouton ajouter sur 2 lignes pour avoir de la place */
         .input-group { flex-direction: column; }
         .add-btn { width: 100%; }
-
-        /* Grille des réponses en 1 colonne sur petit écran pour lisibilité */
         .options-grid { grid-template-columns: 1fr; }
-        
-        /* Transition Screen : Texte plus petit */
         #next-player-name { font-size: 2.2rem !important; }
-
-        /* Contrôles du jeu (Gagné/Raté) */
-        .game-controls { 
-            gap: 10px; 
-        }
+        .game-controls { gap: 10px; }
         
-        /* Sur très petits écrans (iPhone SE, etc.) on empile les boutons de fin */
         @media (max-width: 380px) {
             .game-controls { flex-direction: column; }
             .btn-control { width: 100%; }
@@ -353,19 +379,16 @@
         <h1 style="font-size: 2rem; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">CHANGEMENT DE JOUEUR</h1>
         <p style="font-size: 1.2rem; margin-bottom: 20px;">C'est au tour de :</p>
         <div id="next-player-name" style="font-size: 3rem; font-weight: bold; color: #f1c40f; margin-bottom: 30px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">...</div>
-        
         <button class="reveal-btn" style="background-color: black;" onclick="startNextTurn()">C'EST PARTI !</button>
     </div>
 
     <div id="game-screen" class="screen">
-        
         <div class="top-info">
             <div id="current-player-display" class="current-player">Joueur 1</div>
             <span id="difficulty-display" class="difficulty-badge">Niveau 1</span>
         </div>
 
         <div class="card-area">
-            
             <img id="difficulty-img" src="" class="difficulty-img" alt="Icone difficulté">
 
             <button id="btn-theme" class="reveal-btn" onclick="reveal('theme')">DÉCOUVRIR LE THÈME</button>
@@ -384,7 +407,6 @@
                 <div id="answer-display" class="correct-answer">...</div>
                 <div onclick="showAnswer()" style="margin-top:15px; font-size: 0.9rem; padding: 10px; color:#bdc3c7; cursor:pointer; text-decoration: underline;">Révéler la réponse (Maître du jeu)</div>
             </div>
-
         </div>
 
         <div class="game-controls">
@@ -393,9 +415,30 @@
         </div>
     </div>
 
+    <div id="minigame-layer">
+        <div id="close-minigame" onclick="closeMiniGame()">X</div>
+        
+        <canvas id="flappyCanvas"></canvas>
+        
+        <div id="mg-score-display">0</div>
+        
+        <div id="mg-ui-layer">
+            <div id="mg-start-screen" class="mg-screen">
+                <h1 class="mg-h1">NEON FLAP</h1>
+                <p>Appuie pour voler</p>
+            </div>
+            
+            <div id="mg-game-over-screen" class="mg-screen mg-hidden">
+                <h1 class="mg-h1" style="color:var(--neon-red)">PERDU</h1>
+                <p>Score: <span id="mg-final-score" style="color:var(--neon-green)">0</span></p>
+                <p style="margin-top:15px">REJOUER</p>
+            </div>
+        </div>
+    </div>
+
     <script>
         /* =========================================================
-           ZONE DE DONNÉES
+           DATA QUESTIONS
            ========================================================= */
         const allQuestions = [
   {
@@ -2480,7 +2523,7 @@
 ];
 
         /* =========================================================
-           LOGIQUE DU JEU
+           LOGIQUE JEU PRINCIPAL (QUIZ)
            ========================================================= */
         let players = [];
         let currentPlayerIndex = 0;
@@ -2502,30 +2545,19 @@
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            window.scrollTo(0,0); // Remonter en haut de page lors du changement d'écran
+            window.scrollTo(0,0);
         }
 
         function goToSetup() { 
-        const splashScreen = document.getElementById('splash-screen');
-        const setupScreen = document.getElementById('setup-screen');
-
-        // 1. On lance l'animation de sortie sur l'écran actuel
-        splashScreen.classList.add('screen-exit');
-
-        // 2. On attend la fin de l'animation (500ms comme défini dans le CSS)
-        setTimeout(() => {
-            // On cache l'écran d'accueil "proprement" via ta fonction showScreen
-            showScreen('setup-screen');
-            
-            // On retire la classe de sortie pour si on revient plus tard (reset)
-            splashScreen.classList.remove('screen-exit');
-            
-            // 3. On ajoute une classe spécifique pour l'entrée du menu
-            // Note: showScreen ajoute déjà 'active', mais on veut surcharger l'animation
-            setupScreen.classList.add('screen-enter-up');
-            
-        }, 450); // Petit timing (450ms) pour que ça s'enchaîne parfaitement
-    }
+            const splashScreen = document.getElementById('splash-screen');
+            const setupScreen = document.getElementById('setup-screen');
+            splashScreen.classList.add('screen-exit');
+            setTimeout(() => {
+                showScreen('setup-screen');
+                splashScreen.classList.remove('screen-exit');
+                setupScreen.classList.add('screen-enter-up');
+            }, 450);
+        }
 
         function addPlayer() {
             const input = document.getElementById('player-input');
@@ -2552,15 +2584,7 @@
         function updateGameVisuals() {
             const level = levels[currentDifficultyIndex];
             document.documentElement.style.setProperty('--theme-color', level.color);
-            
-            // Mise à jour de l'image de fond via le pseudo-élément (plus complexe en JS pur, donc on change le body background-image si le CSS fallback est utilisé, mais ici le CSS ::before gère le principal)
-            // Pour le JS, on peut cibler une variable CSS si on veut changer l'image dynamiquement dans le ::before, mais gardons simple :
-            // Si tu veux changer l'image de fond dynamiquement, le mieux est d'appliquer une classe au body ou changer le style inline du body qui serait répercuté.
-            // Pour ce code, je garde ton logique background sur body pour le fallback.
             document.body.style.backgroundImage = `url('${level.bg}')`;
-
-            // Hack pour mettre à jour le pseudo élément via une variable CSS si besoin, 
-            // mais ici on suppose que fond1.jpg est la même pour tous ou change selon level.bg
             
             const cardcolor = cardcolors[currentDifficultyIndex];
             document.documentElement.style.setProperty('--card-bg', cardcolor.color);
@@ -2573,6 +2597,17 @@
             imgElement.onerror = function() { 
                 this.src = `https://placehold.co/100x100/${level.color.substring(1)}/FFF?text=${level.name.charAt(0).toUpperCase()}`; 
             };
+
+            // --- INTÉGRATION MINI-JEU : Si c'est facile, on active le clic ---
+            if (level.name === 'facile') {
+                imgElement.classList.add('clickable');
+                imgElement.onclick = openMiniGame;
+                imgElement.title = "Cliquez pour un jeu bonus !";
+            } else {
+                imgElement.classList.remove('clickable');
+                imgElement.onclick = null;
+                imgElement.title = "";
+            }
         }
 
         function loadNewCard() {
@@ -2650,6 +2685,183 @@
             loadNewCard();
             showScreen('game-screen');
         }
+
+
+        /* =========================================================
+           LOGIQUE MINI JEU (FLAPPY NÉON)
+           ========================================================= */
+        let mgCanvas, mgCtx, mgAnimId;
+        let isMiniGameOpen = false;
+        let mgFrames = 0, mgScore = 0, mgState = 'START';
+        let mgGameSpeed = 2.5;
+
+        // Éléments DOM Mini Jeu
+        const mgUi = {
+            layer: document.getElementById('minigame-layer'),
+            start: document.getElementById('mg-start-screen'),
+            gameOver: document.getElementById('mg-game-over-screen'),
+            score: document.getElementById('mg-score-display'),
+            finalScore: document.getElementById('mg-final-score')
+        };
+        
+        // Configuration
+        const MG_COLORS = { bird: '#ffd700', pipe: '#39ff14' };
+        
+        // Objets Jeu
+        const mgBird = {
+            x: 50, y: 150, radius: 12, velocity: 0, gravity: 0.25, jump: -4.6,
+            draw: function() {
+                mgCtx.beginPath();
+                mgCtx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                mgCtx.fillStyle = MG_COLORS.bird;
+                mgCtx.shadowBlur = 15; mgCtx.shadowColor = MG_COLORS.bird;
+                mgCtx.fill(); mgCtx.shadowBlur = 0; mgCtx.closePath();
+            },
+            update: function() {
+                this.velocity += this.gravity;
+                this.y += this.velocity;
+                if (this.y + this.radius >= mgCanvas.height) mgGameOver();
+            },
+            flap: function() { this.velocity = this.jump; },
+            reset: function() { this.y = mgCanvas.height / 2; this.velocity = 0; this.x = mgCanvas.width * 0.2; }
+        };
+
+        const mgPipes = {
+            items: [], w: 50, h: 160,
+            draw: function() {
+                mgCtx.fillStyle = MG_COLORS.pipe;
+                mgCtx.shadowBlur = 10; mgCtx.shadowColor = MG_COLORS.pipe;
+                for (let i = 0; i < this.items.length; i++) {
+                    let p = this.items[i];
+                    mgCtx.fillRect(p.x, 0, this.w, p.top);
+                    mgCtx.fillRect(p.x, p.top + this.h, this.w, mgCanvas.height - (p.top + this.h));
+                }
+                mgCtx.shadowBlur = 0;
+            },
+            update: function() {
+                const frameInterval = Math.floor(250 / mgGameSpeed) + 20; 
+                if (mgFrames % frameInterval === 0) {
+                    const maxTop = mgCanvas.height - this.h - 50;
+                    const minTop = 50;
+                    const randomTop = Math.floor(Math.random() * (maxTop - minTop)) + minTop;
+                    this.items.push({ x: mgCanvas.width, top: randomTop, passed: false });
+                }
+                for (let i = 0; i < this.items.length; i++) {
+                    let p = this.items[i];
+                    p.x -= mgGameSpeed;
+                    
+                    // Collision
+                    let bLeft = mgBird.x - mgBird.radius + 6;
+                    let bRight = mgBird.x + mgBird.radius - 6;
+                    let bTop = mgBird.y - mgBird.radius + 6;
+                    let bBottom = mgBird.y + mgBird.radius - 6;
+
+                    if (bRight > p.x && bLeft < p.x + this.w) {
+                        if (bTop < p.top || bBottom > p.top + this.h) mgGameOver();
+                    }
+                    if (p.x + this.w < mgBird.x && !p.passed) {
+                        mgScore++;
+                        mgUi.score.innerText = mgScore;
+                        p.passed = true;
+                    }
+                    if (p.x + this.w < 0) { this.items.shift(); i--; }
+                }
+            },
+            reset: function() { this.items = []; }
+        };
+
+        function openMiniGame() {
+            isMiniGameOpen = true;
+            mgUi.layer.style.display = 'flex';
+            
+            // Init Canvas
+            mgCanvas = document.getElementById('flappyCanvas');
+            mgCtx = mgCanvas.getContext('2d');
+            
+            // Resize Canvas
+            mgCanvas.width = mgUi.layer.clientWidth;
+            mgCanvas.height = mgUi.layer.clientHeight;
+            mgGameSpeed = mgCanvas.width < 500 ? 2.5 : 3.5;
+
+            mgState = 'START';
+            mgUi.start.classList.remove('mg-hidden');
+            mgUi.gameOver.classList.add('mg-hidden');
+            mgUi.score.style.display = 'block';
+            mgUi.score.innerText = '0';
+            
+            mgBird.reset();
+            mgPipes.reset();
+            mgBird.draw(); // Dessiner l'état initial
+        }
+
+        function closeMiniGame() {
+            isMiniGameOpen = false;
+            mgUi.layer.style.display = 'none';
+            cancelAnimationFrame(mgAnimId); // Stopper la boucle
+        }
+
+        function mgLoop() {
+            if (!isMiniGameOpen) return;
+            mgCtx.clearRect(0, 0, mgCanvas.width, mgCanvas.height);
+            
+            if (mgState === 'PLAYING') {
+                mgPipes.update();
+                mgBird.update();
+                mgFrames++;
+            }
+            
+            mgPipes.draw();
+            mgBird.draw();
+            
+            if (mgState === 'PLAYING') {
+                mgAnimId = requestAnimationFrame(mgLoop);
+            }
+        }
+
+        function mgStart() {
+            mgState = 'PLAYING';
+            mgUi.start.classList.add('mg-hidden');
+            mgUi.gameOver.classList.add('mg-hidden');
+            mgUi.score.style.display = 'block';
+            mgBird.reset();
+            mgPipes.reset();
+            mgScore = 0; mgFrames = 0;
+            mgUi.score.innerText = mgScore;
+            mgBird.flap();
+            mgLoop();
+        }
+
+        function mgGameOver() {
+            mgState = 'GAMEOVER';
+            cancelAnimationFrame(mgAnimId);
+            mgUi.finalScore.innerText = mgScore;
+            mgUi.score.style.display = 'none';
+            mgUi.gameOver.classList.remove('mg-hidden');
+        }
+
+        function mgAction(e) {
+            if (!isMiniGameOpen) return; // Ne rien faire si le mini jeu est fermé
+            
+            // Si clic sur le bouton croix, on laisse passer l'event vers onclick="closeMiniGame()"
+            if(e.target.id === 'close-minigame') return;
+
+            e.preventDefault(); 
+            e.stopPropagation(); // Empêcher de cliquer sur le quiz en dessous
+
+            if (e.type === 'keydown' && e.code !== 'Space') return;
+
+            switch (mgState) {
+                case 'START': mgStart(); break;
+                case 'PLAYING': mgBird.flap(); break;
+                case 'GAMEOVER': mgStart(); break;
+            }
+        }
+
+        // Listeners globaux (filtrés par isMiniGameOpen)
+        window.addEventListener('keydown', mgAction);
+        window.addEventListener('mousedown', mgAction);
+        window.addEventListener('touchstart', mgAction, {passive: false});
+
     </script>
 </body>
 </html>
