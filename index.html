@@ -448,6 +448,636 @@
            ========================================================= */
         const allQuestions = 
         [
+            {
+    "theme": "Physique",
+    "difficulty": "facile",
+    "question": "Quelle force nous maintient les pieds sur Terre ?",
+    "options": ["Le magnétisme", "La gravité", "L'inertie", "La friction"],
+    "answer": "La gravité"
+  },
+  {
+    "theme": "Physique",
+    "difficulty": "facile",
+    "question": "Qu'est-ce qui voyage le plus vite dans le vide ?",
+    "options": ["Le son", "La lumière", "Une fusée", "Un avion"],
+    "answer": "La lumière"
+  },
+  {
+    "theme": "Physique",
+    "difficulty": "facile",
+    "question": "Quels sont les deux pôles d'un aimant ?",
+    "options": ["Est et Ouest", "Haut et Bas", "Nord et Sud", "Plus et Moins"],
+    "answer": "Nord et Sud"
+  },
+  {
+    "theme": "Physique",
+    "difficulty": "moyen",
+    "question": "Quelle est l'unité de mesure de la force ?",
+    "options": ["Le Joule", "Le Watt", "Le Newton", "Le Pascal"],
+    "answer": "Le Newton"
+  },
+  {
+    "theme": "Physique",
+    "difficulty": "moyen",
+    "question": "Quelle célèbre équation est associée à Albert Einstein ?",
+    "options": ["F=ma", "E=mc²", "U=RI", "a²+b²=c²"],
+    "answer": "E=mc²"
+  },
+  {
+    "theme": "Physique",
+    "difficulty": "moyen",
+    "question": "Que mesure un compteur Geiger ?",
+    "options": ["La température", "La pression", "La radioactivité", "L'humidité"],
+    "answer": "La radioactivité"
+  },
+  {
+    "theme": "Physique",
+    "difficulty": "difficile",
+    "question": "Dans une célèbre expérience de pensée quantique, quel animal est à la fois mort et vivant ?",
+    "options": ["Le chien de Pavlov", "Le chat de Schrödinger", "La souris de Heisenberg", "Le singe de Bohr"],
+    "answer": "Le chat de Schrödinger"
+  },
+  {
+    "theme": "Physique",
+    "difficulty": "difficile",
+    "question": "Quelle particule élémentaire est surnommée le 'boson de Dieu' ?",
+    "options": ["Le boson de Higgs", "Le photon", "Le quark", "Le neutrino"],
+    "answer": "Le boson de Higgs"
+  },
+  {
+    "theme": "Physique",
+    "difficulty": "difficile",
+    "question": "Qui a découvert les rayons X en 1895 ?",
+    "options": ["Marie Curie", "Wilhelm Röntgen", "Max Planck", "Henri Becquerel"],
+    "answer": "Wilhelm Röntgen"
+  },
+  {
+    "theme": "Dinosaures",
+    "difficulty": "facile",
+    "question": "Quel célèbre dinosaure carnivore possède de très petits bras ?",
+    "options": ["Le Tricératops", "Le Tyrannosaure (T-Rex)", "Le Diplodocus", "Le Stégosaure"],
+    "answer": "Le Tyrannosaure (T-Rex)"
+  },
+  {
+    "theme": "Dinosaures",
+    "difficulty": "facile",
+    "question": "Combien de cornes possède un Tricératops ?",
+    "options": ["Une", "Deux", "Trois", "Quatre"],
+    "answer": "Trois"
+  },
+  {
+    "theme": "Dinosaures",
+    "difficulty": "facile",
+    "question": "Quelle est la cause la plus probable de l'extinction des dinosaures ?",
+    "options": ["Une épidémie", "Une météorite", "Une inondation", "Une guerre"],
+    "answer": "Une météorite"
+  },
+  {
+    "theme": "Dinosaures",
+    "difficulty": "moyen",
+    "question": "Durant quelle ère géologique les dinosaures ont-ils vécu ?",
+    "options": ["Paléozoïque", "Mésozoïque", "Cénozoïque", "Précambrien"],
+    "answer": "Mésozoïque"
+  },
+  {
+    "theme": "Dinosaures",
+    "difficulty": "moyen",
+    "question": "Lequel de ces dinosaures était herbivore ?",
+    "options": ["Vélociraptor", "Tyrannosaure", "Diplodocus", "Spinausore"],
+    "answer": "Diplodocus"
+  },
+  {
+    "theme": "Dinosaures",
+    "difficulty": "moyen",
+    "question": "Qu'est-ce qu'un fossile ?",
+    "options": ["Un os frais", "Un reste vivant", "Un reste pétrifié", "Une pierre précieuse"],
+    "answer": "Un reste pétrifié"
+  },
+  {
+    "theme": "Dinosaures",
+    "difficulty": "difficile",
+    "question": "Dans quel pays actuel se trouve le cratère de Chicxulub (impact de la météorite) ?",
+    "options": ["États-Unis", "Australie", "Mexique", "Russie"],
+    "answer": "Mexique"
+  },
+  {
+    "theme": "Dinosaures",
+    "difficulty": "difficile",
+    "question": "De quels animaux actuels les dinosaures théropodes sont-ils les ancêtres directs ?",
+    "options": ["Les crocodiles", "Les oiseaux", "Les lézards", "Les rhinocéros"],
+    "answer": "Les oiseaux"
+  },
+  {
+    "theme": "Dinosaures",
+    "difficulty": "difficile",
+    "question": "Que signifie littéralement le mot 'Dinosaure' ?",
+    "options": ["Lézard terrible", "Grand reptile", "Ancien dragon", "Monstre de pierre"],
+    "answer": "Lézard terrible"
+  },
+  {
+    "theme": "Boissons",
+    "difficulty": "facile",
+    "question": "Quel fruit est fermenté pour produire du vin ?",
+    "options": ["La pomme", "Le raisin", "La cerise", "La poire"],
+    "answer": "Le raisin"
+  },
+  {
+    "theme": "Boissons",
+    "difficulty": "facile",
+    "question": "Quelle substance excitante trouve-t-on dans le café ?",
+    "options": ["La théine", "La caféine", "La taurine", "La nicotine"],
+    "answer": "La caféine"
+  },
+  {
+    "theme": "Boissons",
+    "difficulty": "facile",
+    "question": "Quelle est la boisson pétillante traditionnelle des fêtes ?",
+    "options": ["Le Champagne", "Le Coca-Cola", "La Limonade", "Le Jus d'orange"],
+    "answer": "Le Champagne"
+  },
+  {
+    "theme": "Boissons",
+    "difficulty": "moyen",
+    "question": "Quelle céréale est principalement utilisée pour faire de la bière ?",
+    "options": ["Le riz", "Le maïs", "L'orge (malt)", "Le seigle"],
+    "answer": "L'orge (malt)"
+  },
+  {
+    "theme": "Boissons",
+    "difficulty": "moyen",
+    "question": "De quel pays le thé est-il originaire ?",
+    "options": ["Angleterre", "Chine", "Brésil", "Maroc"],
+    "answer": "Chine"
+  },
+  {
+    "theme": "Boissons",
+    "difficulty": "moyen",
+    "question": "À partir de quelle plante fabrique-t-on la Tequila ?",
+    "options": ["Le cactus", "L'agave", "L'aloe vera", "Le palmier"],
+    "answer": "L'agave"
+  },
+  {
+    "theme": "Boissons",
+    "difficulty": "difficile",
+    "question": "Comment s'appelle la science qui étudie le vin ?",
+    "options": ["La gastronomie", "L'œnologie", "La viticulture", "La sommellerie"],
+    "answer": "L'œnologie"
+  },
+  {
+    "theme": "Boissons",
+    "difficulty": "difficile",
+    "question": "Quel est l'ingrédient de base fermenté pour obtenir de l'hydromel ?",
+    "options": ["La pomme", "Le raisin", "Le miel", "L'orge"],
+    "answer": "Le miel"
+  },
+  {
+    "theme": "Boissons",
+    "difficulty": "difficile",
+    "question": "Quel alcool est l'ingrédient principal d'un cocktail Bloody Mary ?",
+    "options": ["Le Gin", "La Tequila", "Le Rhum", "La Vodka"],
+    "answer": "La Vodka"
+  },
+  {
+    "theme": "Théâtre",
+    "difficulty": "facile",
+    "question": "Sur quelle partie du théâtre les acteurs jouent-ils ?",
+    "options": ["Les coulisses", "Le balcon", "La scène", "Le parterre"],
+    "answer": "La scène"
+  },
+  {
+    "theme": "Théâtre",
+    "difficulty": "facile",
+    "question": "Qui a écrit la tragédie 'Roméo et Juliette' ?",
+    "options": ["Molière", "William Shakespeare", "Victor Hugo", "Racine"],
+    "answer": "William Shakespeare"
+  },
+  {
+    "theme": "Théâtre",
+    "difficulty": "facile",
+    "question": "Quel accessoire porte-t-on sur le visage pour incarner un personnage anonyme ?",
+    "options": ["Un chapeau", "Un masque", "Des lunettes", "Une écharpe"],
+    "answer": "Un masque"
+  },
+  {
+    "theme": "Théâtre",
+    "difficulty": "moyen",
+    "question": "En France, combien de coups frappe-t-on traditionnellement avant le début d'une pièce ?",
+    "options": ["Un", "Trois", "Douze", "Cinq"],
+    "answer": "Trois"
+  },
+  {
+    "theme": "Théâtre",
+    "difficulty": "moyen",
+    "question": "Quel célèbre dramaturge français a écrit 'Le Malade imaginaire' ?",
+    "options": ["Corneille", "Molière", "Racine", "Beaumarchais"],
+    "answer": "Molière"
+  },
+  {
+    "theme": "Théâtre",
+    "difficulty": "moyen",
+    "question": "Comment appelle-t-on une pièce de théâtre dont l'histoire finit mal ?",
+    "options": ["Une comédie", "Une tragédie", "Un vaudeville", "Une satire"],
+    "answer": "Une tragédie"
+  },
+  {
+    "theme": "Théâtre",
+    "difficulty": "difficile",
+    "question": "Dans la célèbre pièce de Samuel Beckett, qui les personnages attendent-ils ?",
+    "options": ["Le Messie", "Godot", "Le Roi", "La Mort"],
+    "answer": "Godot"
+  },
+  {
+    "theme": "Théâtre",
+    "difficulty": "difficile",
+    "question": "Quelle règle du théâtre classique impose un seul lieu, un seul jour et une seule action ?",
+    "options": ["La règle d'or", "La règle des trois unités", "La règle de la bienséance", "La règle du jeu"],
+    "answer": "La règle des trois unités"
+  },
+  {
+    "theme": "Théâtre",
+    "difficulty": "difficile",
+    "question": "Quel était le nom du théâtre de Shakespeare à Londres ?",
+    "options": ["Le Globe", "L'Odéon", "La Comédie", "Le Royal"],
+    "answer": "Le Globe"
+  },
+  {
+    "theme": "Danse",
+    "difficulty": "facile",
+    "question": "Quelle est la tenue emblématique de la danseuse classique ?",
+    "options": ["Le kimono", "Le tutu", "Le sari", "Le jean"],
+    "answer": "Le tutu"
+  },
+  {
+    "theme": "Danse",
+    "difficulty": "facile",
+    "question": "Quel pas de danse célèbre consistant à glisser en arrière est associé à Michael Jackson ?",
+    "options": ["Le Twist", "Le Moonwalk", "Le Breakdance", "La Salsa"],
+    "answer": "Le Moonwalk"
+  },
+  {
+    "theme": "Danse",
+    "difficulty": "facile",
+    "question": "Combien de partenaires faut-il pour danser un tango standard ?",
+    "options": ["1", "2", "3", "4"],
+    "answer": "2"
+  },
+  {
+    "theme": "Danse",
+    "difficulty": "moyen",
+    "question": "De quel pays est originaire le Tango ?",
+    "options": ["Espagne", "France", "Argentine", "Brésil"],
+    "answer": "Argentine"
+  },
+  {
+    "theme": "Danse",
+    "difficulty": "moyen",
+    "question": "Quel est le rythme caractéristique de la valse ?",
+    "options": ["2 temps", "3 temps", "4 temps", "5 temps"],
+    "answer": "3 temps"
+  },
+  {
+    "theme": "Danse",
+    "difficulty": "moyen",
+    "question": "Quelle danse traditionnelle est associée à Hawaï ?",
+    "options": ["Le Hula", "Le Sirtaki", "La Polka", "Le Flamenco"],
+    "answer": "Le Hula"
+  },
+  {
+    "theme": "Danse",
+    "difficulty": "difficile",
+    "question": "Quelle actrice était la partenaire de danse légendaire de Fred Astaire ?",
+    "options": ["Marilyn Monroe", "Ginger Rogers", "Audrey Hepburn", "Judy Garland"],
+    "answer": "Ginger Rogers"
+  },
+  {
+    "theme": "Danse",
+    "difficulty": "difficile",
+    "question": "Quel ballet de Tchaïkovski raconte l'histoire d'Odette, transformée en oiseau ?",
+    "options": ["Casse-Noisette", "Le Sacre du Printemps", "Le Lac des Cygnes", "La Belle au bois dormant"],
+    "answer": "Le Lac des Cygnes"
+  },
+  {
+    "theme": "Danse",
+    "difficulty": "difficile",
+    "question": "De quel pays est originaire la Capoeira, art martial et danse ?",
+    "options": ["Brésil", "Cuba", "Angola", "Portugal"],
+    "answer": "Brésil"
+  },
+  {
+    "theme": "Expressions Françaises",
+    "difficulty": "facile",
+    "question": "Complétez l'expression : 'Il pleut des ...'",
+    "options": ["Seaux", "Cordes", "Chats", "Pierres"],
+    "answer": "Cordes"
+  },
+  {
+    "theme": "Expressions Françaises",
+    "difficulty": "facile",
+    "question": "Que donne-t-on au chat quand on ignore la réponse à une devinette ?",
+    "options": ["Sa main", "Son nez", "Sa langue", "Ses oreilles"],
+    "answer": "Sa langue"
+  },
+  {
+    "theme": "Expressions Françaises",
+    "difficulty": "facile",
+    "question": "Quel animal a-t-on dans la gorge quand on est enroué ?",
+    "options": ["Un chien", "Un chat", "Une grenouille", "Un oiseau"],
+    "answer": "Un chat"
+  },
+  {
+    "theme": "Expressions Françaises",
+    "difficulty": "moyen",
+    "question": "Que signifie l'expression 'Poser un lapin' ?",
+    "options": ["Cuisiner", "Offrir un cadeau", "Ne pas venir à un rendez-vous", "Courir vite"],
+    "answer": "Ne pas venir à un rendez-vous"
+  },
+  {
+    "theme": "Expressions Françaises",
+    "difficulty": "moyen",
+    "question": "Si quelqu'un 'raconte des salades', que fait-il ?",
+    "options": ["Il prépare à manger", "Il ment", "Il jardine", "Il rit"],
+    "answer": "Il ment"
+  },
+  {
+    "theme": "Expressions Françaises",
+    "difficulty": "moyen",
+    "question": "Dans quel fruit tombe-t-on lorsqu'on s'évanouit ?",
+    "options": ["Les pommes", "Les poires", "Les fraises", "Les raisins"],
+    "answer": "Les pommes"
+  },
+  {
+    "theme": "Expressions Françaises",
+    "difficulty": "difficile",
+    "question": "Qu'est-ce qu'un 'Violon d'Ingres' ?",
+    "options": ["Un instrument rare", "Une passion ou un hobby", "Une technique de peinture", "Une maladie"],
+    "answer": "Une passion ou un hobby"
+  },
+  {
+    "theme": "Expressions Françaises",
+    "difficulty": "difficile",
+    "question": "Complétez : 'Tomber de Charybde en ...'",
+    "options": ["Scylla", "Enfer", "Abîme", "Ruine"],
+    "answer": "Scylla"
+  },
+  {
+    "theme": "Expressions Françaises",
+    "difficulty": "difficile",
+    "question": "En quelle monnaie paie-t-on pour se moquer de quelqu'un ?",
+    "options": ["De chien", "De chat", "De singe", "De pape"],
+    "answer": "De singe"
+  },
+  {
+    "theme": "Océans",
+    "difficulty": "facile",
+    "question": "Quel océan borde la côte ouest de la France ?",
+    "options": ["L'Océan Indien", "L'Océan Pacifique", "L'Océan Atlantique", "La Mer Méditerranée"],
+    "answer": "L'Océan Atlantique"
+  },
+  {
+    "theme": "Océans",
+    "difficulty": "facile",
+    "question": "Comment appelle-t-on le mouvement de montée et de descente du niveau de la mer ?",
+    "options": ["La vague", "La marée", "Le courant", "Le tsunami"],
+    "answer": "La marée"
+  },
+  {
+    "theme": "Océans",
+    "difficulty": "facile",
+    "question": "Quel est le goût de l'eau des océans ?",
+    "options": ["Douce", "Salée", "Acide", "Sucrée"],
+    "answer": "Salée"
+  },
+  {
+    "theme": "Océans",
+    "difficulty": "moyen",
+    "question": "Quel est le plus petit des 5 océans ?",
+    "options": ["Arctique", "Indien", "Pacifique", "Austral"],
+    "answer": "Arctique"
+  },
+  {
+    "theme": "Océans",
+    "difficulty": "moyen",
+    "question": "Quel astre influence principalement les marées ?",
+    "options": ["Le Soleil", "La Lune", "Mars", "L'Étoile Polaire"],
+    "answer": "La Lune"
+  },
+  {
+    "theme": "Océans",
+    "difficulty": "moyen",
+    "question": "Qu'est-ce qu'un atoll ?",
+    "options": ["Un poisson", "Un bateau", "Une île corallienne", "Un vent"],
+    "answer": "Une île corallienne"
+  },
+  {
+    "theme": "Océans",
+    "difficulty": "difficile",
+    "question": "Quel est le point le plus profond connu des océans ?",
+    "options": ["La fosse des Mariannes", "La fosse des Tonga", "Le Triangle des Bermudes", "La faille de San Andreas"],
+    "answer": "La fosse des Mariannes"
+  },
+  {
+    "theme": "Océans",
+    "difficulty": "difficile",
+    "question": "Quel détroit sépare l'Alaska de la Russie ?",
+    "options": ["Le détroit de Magellan", "Le détroit de Béring", "Le détroit de Gibraltar", "Le détroit d'Ormuz"],
+    "answer": "Le détroit de Béring"
+  },
+  {
+    "theme": "Océans",
+    "difficulty": "difficile",
+    "question": "Dans quelle mer peut-on flotter sans effort à cause de la forte salinité ?",
+    "options": ["La Mer Noire", "La Mer Rouge", "La Mer Morte", "La Mer Caspienne"],
+    "answer": "La Mer Morte"
+  },
+  {
+    "theme": "Langues",
+    "difficulty": "facile",
+    "question": "Comment dit-on 'Bonjour' en espagnol ?",
+    "options": ["Ciao", "Hello", "Hola", "Guten Tag"],
+    "answer": "Hola"
+  },
+  {
+    "theme": "Langues",
+    "difficulty": "facile",
+    "question": "Quelle langue parle-t-on principalement en Allemagne ?",
+    "options": ["L'Anglais", "Le Néerlandais", "L'Allemand", "Le Polonais"],
+    "answer": "L'Allemand"
+  },
+  {
+    "theme": "Langues",
+    "difficulty": "facile",
+    "question": "Quel signe de ponctuation termine une phrase interrogative ?",
+    "options": ["Le point", "Le point d'exclamation", "La virgule", "Le point d'interrogation"],
+    "answer": "Le point d'interrogation"
+  },
+  {
+    "theme": "Langues",
+    "difficulty": "moyen",
+    "question": "Quelle était la langue parlée par les Romains ?",
+    "options": ["Le Grec", "Le Latin", "L'Italien", "Le Gaulois"],
+    "answer": "Le Latin"
+  },
+  {
+    "theme": "Langues",
+    "difficulty": "moyen",
+    "question": "Quel alphabet est utilisé pour écrire le russe ?",
+    "options": ["L'alphabet latin", "L'alphabet grec", "L'alphabet cyrillique", "L'alphabet arabe"],
+    "answer": "L'alphabet cyrillique"
+  },
+  {
+    "theme": "Langues",
+    "difficulty": "moyen",
+    "question": "Quelle est la langue maternelle la plus parlée au monde ?",
+    "options": ["L'Anglais", "L'Espagnol", "Le Mandarin (Chinois)", "L'Hindi"],
+    "answer": "Le Mandarin (Chinois)"
+  },
+  {
+    "theme": "Langues",
+    "difficulty": "difficile",
+    "question": "Quelle langue construite a été créée par le docteur Zamenhof pour être universelle ?",
+    "options": ["Le Volapük", "L'Espéranto", "Le Klingon", "L'Interlingua"],
+    "answer": "L'Espéranto"
+  },
+  {
+    "theme": "Langues",
+    "difficulty": "difficile",
+    "question": "Combien y a-t-il de langues officielles à l'ONU ?",
+    "options": ["4", "5", "6", "10"],
+    "answer": "6"
+  },
+  {
+    "theme": "Langues",
+    "difficulty": "difficile",
+    "question": "À quelle famille linguistique appartient le français ?",
+    "options": ["Les langues germaniques", "Les langues slaves", "Les langues romanes", "Les langues sémitiques"],
+    "answer": "Les langues romanes"
+  },
+  {
+    "theme": "Informatique",
+    "difficulty": "facile",
+    "question": "Quel périphérique utilise-t-on principalement pour cliquer sur un ordinateur ?",
+    "options": ["Le clavier", "L'écran", "La souris", "L'imprimante"],
+    "answer": "La souris"
+  },
+  {
+    "theme": "Informatique",
+    "difficulty": "facile",
+    "question": "Sur quoi tape-t-on pour écrire du texte à l'ordinateur ?",
+    "options": ["La souris", "Le clavier", "Le disque dur", "Le moniteur"],
+    "answer": "Le clavier"
+  },
+  {
+    "theme": "Informatique",
+    "difficulty": "facile",
+    "question": "Que signifie le 'e' dans e-mail ?",
+    "options": ["Express", "Electronic", "Electric", "Easy"],
+    "answer": "Electronic"
+  },
+  {
+    "theme": "Informatique",
+    "difficulty": "moyen",
+    "question": "Quels sont les deux seuls chiffres utilisés en code binaire ?",
+    "options": ["1 et 2", "0 et 1", "0 et 9", "A et B"],
+    "answer": "0 et 1"
+  },
+  {
+    "theme": "Informatique",
+    "difficulty": "moyen",
+    "question": "Quel terme anglais désigne un logiciel de navigation (comme Chrome ou Firefox) ?",
+    "options": ["Un Server", "Un Browser", "Un Hacker", "Un Router"],
+    "answer": "Un Browser"
+  },
+  {
+    "theme": "Informatique",
+    "difficulty": "moyen",
+    "question": "Que signifie l'acronyme PC ?",
+    "options": ["Portable Computer", "Professional Computer", "Personal Computer", "Private Computer"],
+    "answer": "Personal Computer"
+  },
+  {
+    "theme": "Informatique",
+    "difficulty": "difficile",
+    "question": "Quel langage de programmation porte le nom d'un serpent ?",
+    "options": ["Cobra", "Viper", "Python", "Anaconda"],
+    "answer": "Python"
+  },
+  {
+    "theme": "Informatique",
+    "difficulty": "difficile",
+    "question": "Quel code erreur HTTP indique qu'une page est introuvable ?",
+    "options": ["200", "301", "404", "500"],
+    "answer": "404"
+  },
+  {
+    "theme": "Informatique",
+    "difficulty": "difficile",
+    "question": "Que signifie HTML ?",
+    "options": ["High Tech Main Line", "HyperText Markup Language", "Home Tool Made Logic", "HyperTransfer Main Link"],
+    "answer": "HyperText Markup Language"
+  },
+  {
+    "theme": "Folklore & Légendes",
+    "difficulty": "facile",
+    "question": "Quel personnage distribue des cadeaux la nuit de Noël ?",
+    "options": ["Le Père Fouettard", "Le Père Noël", "La Petite Souris", "Saint Nicolas"],
+    "answer": "Le Père Noël"
+  },
+  {
+    "theme": "Folklore & Légendes",
+    "difficulty": "facile",
+    "question": "De quoi se nourrit principalement un vampire ?",
+    "options": ["De viande", "De sang", "De fruits", "D'eau"],
+    "answer": "De sang"
+  },
+  {
+    "theme": "Folklore & Légendes",
+    "difficulty": "facile",
+    "question": "Quel animal tire le traîneau du Père Noël ?",
+    "options": ["Le cheval", "Le renne", "Le chien", "L'ours"],
+    "answer": "Le renne"
+  },
+  {
+    "theme": "Folklore & Légendes",
+    "difficulty": "moyen",
+    "question": "Quelle créature mythique est mi-femme, mi-poisson ?",
+    "options": ["La Harpie", "La Sirène", "La Gorgone", "La Chimère"],
+    "answer": "La Sirène"
+  },
+  {
+    "theme": "Folklore & Légendes",
+    "difficulty": "moyen",
+    "question": "Quel monstre légendaire est censé vivre dans un lac en Écosse ?",
+    "options": ["Le Kraken", "Le monstre du Loch Ness", "Le Yeti", "Le Bigfoot"],
+    "answer": "Le monstre du Loch Ness"
+  },
+  {
+    "theme": "Folklore & Légendes",
+    "difficulty": "moyen",
+    "question": "Selon la légende, comment tue-t-on un loup-garou ?",
+    "options": ["Avec de l'ail", "Avec un pieu en bois", "Avec une balle en argent", "Avec du feu"],
+    "answer": "Avec une balle en argent"
+  },
+  {
+    "theme": "Folklore & Légendes",
+    "difficulty": "difficile",
+    "question": "Comment s'appelle l'épée légendaire du Roi Arthur ?",
+    "options": ["Durandal", "Excalibur", "Joyeuse", "Anduril"],
+    "answer": "Excalibur"
+  },
+  {
+    "theme": "Folklore & Légendes",
+    "difficulty": "difficile",
+    "question": "Quel oiseau légendaire a le pouvoir de renaître de ses cendres ?",
+    "options": ["Le Griffon", "Le Phénix", "L'Oiseau-Tonnerre", "Le Roc"],
+    "answer": "Le Phénix"
+  },
+  {
+    "theme": "Folklore & Légendes",
+    "difficulty": "difficile",
+    "question": "Quelle créature artificielle faite d'argile protège Prague dans le folklore juif ?",
+    "options": ["Le Troll", "Le Golem", "L'Homunculus", "La Gargouille"],
+    "answer": "Le Golem"
+  },
   {
     "theme": "Astronomie",
     "difficulty": "facile",
@@ -2878,3 +3508,4 @@
     </script>
 </body>
 </html>
+
